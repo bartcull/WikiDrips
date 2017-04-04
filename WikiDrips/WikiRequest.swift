@@ -17,7 +17,7 @@ public class WikiRequest
 //        return WikiDoc()
 //    }
     
-    public func fetchWikiDoc(handler: ([WikiDoc]) -> Void) {
+    public func fetchWikiDoc(handler: @escaping ([WikiDoc]) -> Void) {
 //      TODO: make api requests
             var wikiDocs = [WikiDoc]()
             var wikiDocArray: NSArray?

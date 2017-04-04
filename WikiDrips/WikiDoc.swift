@@ -10,19 +10,37 @@ import Foundation
 
 public class WikiDoc
 {
-    public let title = "Test Title String"
-    public let pubDate = Date.init()
+    public let title: String
+    public let pubDate: Date
     public var imageInitials: String {
         get {
             let nameArray = self.title.components(separatedBy: " ")
-            return "\(nameArray.first?.characters.first!)\(nameArray.last?.characters.first!)"
+            var initials = ""
+            
+            if let firstWord = nameArray.first {
+                if let firstInitial = firstWord.characters.first {
+                    initials = "\(firstInitial)"
+                }
+            }
+            
+            if nameArray.count > 1 {
+                if let lastWord = nameArray.last {
+                    if let lastInitial = lastWord.characters.first {
+                        initials += "\(lastInitial)"
+                    }
+                }
+            }
+            
+            return initials
         }
     }
     
-    public func editedDate() -> String {
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("h:mm a., EEEE, MMMM dd, yyyy")
-        return formatter.string(from: pubDate)
+    init? (data: NSDictionary?) {
+        
+//      Make sure properties are set
+        title = "defaultTitle".localized
+        pubDate = Date()
     }
+    
 }
 

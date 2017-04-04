@@ -11,15 +11,18 @@ import UIKit
 class WikiTableViewController: UITableViewController {
 
     var wikiDocs = [[WikiDoc]]()
+    let dateFormatter = DateFormatter()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        dateFormatter.dateStyle = .long
+        dateFormatter.timeStyle = .short
+        
 //      TODO: replace with async call to Wikipedia API
-        self.wikiDocs.insert([WikiDoc()], at: 0)
-        self.wikiDocs.insert([WikiDoc()], at: 0)
-        self.wikiDocs.insert([WikiDoc()], at: 0)
-
+        if let wikiDoc = WikiDoc(data: nil) {
+            wikiDocs.insert([wikiDoc], at: 0)
+        }
     }
 
     // MARK: - Table view data source
@@ -33,13 +36,14 @@ class WikiTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "WikiDoc", for: indexPath) as! WikiTableViewCell
-        let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
-        cell.wikiTitleLabel?.text = wikiDoc.title
-        cell.wikiDateLabel?.text = wikiDoc.editedDate()
-//        cell.wikiTitleImage?.image = wikiDoc.imageInitials // TODO: Generate UIImage
-
-        return cell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "WikiDoc", for: indexPath)
+        if let wikiCell = cell as? WikiTableViewCell {
+            let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
+            wikiCell.wikiTitleLabel?.text = wikiDoc.title
+            wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
+//            cell.wikiTitleImage?.image = wikiDoc.imageInitials // TODO: Generate UIImage
+        }
+        return cell        
     }
     
 

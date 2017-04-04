@@ -9,19 +9,9 @@
 import UIKit
 
 class WikiTableViewCell: UITableViewCell {
-    
-    var wikiDoc: WikiDoc? {
-        didSet {
-            updateUI()
-        }
-    }
 
-    @IBOutlet weak var wikiTitleImage: UIImageView!
-    @IBOutlet weak var wikiTitleLabel: UILabel!
-    @IBOutlet weak var wikiDateLabel: UILabel!
+    @IBOutlet weak var wikiTitleImage: UIImageView?
+    @IBOutlet weak var wikiTitleLabel: UILabel?
+    @IBOutlet weak var wikiDateLabel: UILabel?
     
-    func updateUI() {
-        // TODO: handle updates
-        
-    }
 }
