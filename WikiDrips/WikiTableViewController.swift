@@ -19,6 +19,9 @@ class WikiTableViewController: UITableViewController {
         dateFormatter.dateStyle = .long
         dateFormatter.timeStyle = .short
         
+        tableView.estimatedRowHeight = tableView.rowHeight
+        tableView.rowHeight = UITableViewAutomaticDimension
+        
 //      TODO: replace with async call to Wikipedia API
         if let wikiDoc = WikiDoc(data: nil) {
             wikiDocs.insert([wikiDoc], at: 0)
