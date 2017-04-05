@@ -36,14 +36,17 @@ class WikiTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "WikiDoc", for: indexPath)
-        if let wikiCell = cell as? WikiTableViewCell {
-            let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
-            wikiCell.wikiTitleLabel?.text = wikiDoc.title
-            wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
-//            cell.wikiTitleImage?.image = wikiDoc.imageInitials // TODO: Generate UIImage
+        guard let wikiCell = tableView.dequeueReusableCell(withIdentifier: "WikiDoc", for: indexPath) as? WikiTableViewCell else {
+            // Log or ignore casting failure
+            return UITableViewCell()
         }
-        return cell        
+
+        let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
+        wikiCell.wikiTitleLabel?.text = wikiDoc.title
+        wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
+//        wikiCell.wikiTitleImage?.image = wikiDoc.imageInitials // TODO: Generate UIImage
+
+        return wikiCell
     }
     
 

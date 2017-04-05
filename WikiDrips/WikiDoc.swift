@@ -12,33 +12,31 @@ public class WikiDoc
 {
     public let title: String
     public let pubDate: Date
-    public var imageInitials: String {
+    public var imageInitials: String? {
         get {
             let nameArray = self.title.components(separatedBy: " ")
-            var initials = ""
+            var initials: String = ""
             
-            if let firstWord = nameArray.first {
-                if let firstInitial = firstWord.characters.first {
-                    initials = "\(firstInitial)"
-                }
+            if let first = nameArray.first?.characters.first {
+                initials.append(first)
             }
             
-            if nameArray.count > 1 {
-                if let lastWord = nameArray.last {
-                    if let lastInitial = lastWord.characters.first {
-                        initials += "\(lastInitial)"
-                    }
-                }
+            if let last = nameArray.last?.characters.first, nameArray.count > 1 {
+                initials.append(last)
+            }
+            
+            guard initials.isEmpty == false else {
+                return nil
             }
             
             return initials
         }
     }
     
-    init? (data: NSDictionary?) {
+    init? (data: [String: AnyObject]?) {
         
 //      Make sure properties are set
-        title = "defaultTitle".localized
+        title = NSLocalizedString("defaultTitle", comment: "Default title for wikiDoc")
         pubDate = Date()
     }
     

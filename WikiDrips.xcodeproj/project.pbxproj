@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D616E6841E9422D000A51618 /* Localizable.plist in Resources */ = {isa = PBXBuildFile; fileRef = D616E6861E9422D000A51618 /* Localizable.plist */; };
-		D616E6891E94248200A51618 /* Localizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D616E6881E94248200A51618 /* Localizer.swift */; };
 		D6A884891E8FF59700E905B6 /* WikiTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */; };
 		D6A8848B1E8FF61C00E905B6 /* WikiTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */; };
 		D6AE38041E8ADC800076FB47 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AE38031E8ADC800076FB47 /* AppDelegate.swift */; };
@@ -38,9 +36,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D616E6851E9422D000A51618 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Base; path = Base.lproj/Localizable.plist; sourceTree = "<group>"; };
-		D616E6871E94245600A51618 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = en; path = en.lproj/Localizable.plist; sourceTree = "<group>"; };
-		D616E6881E94248200A51618 /* Localizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Localizer.swift; sourceTree = "<group>"; };
 		D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiTableViewController.swift; sourceTree = "<group>"; };
 		D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiTableViewCell.swift; sourceTree = "<group>"; };
 		D6AE38001E8ADC800076FB47 /* WikiDrips.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WikiDrips.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -86,7 +81,6 @@
 		D616E6811E94224A00A51618 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				D616E6861E9422D000A51618 /* Localizable.plist */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -131,7 +125,6 @@
 				D6AE38031E8ADC800076FB47 /* AppDelegate.swift */,
 				D6AE380F1E8ADC800076FB47 /* Info.plist */,
 				D616E6811E94224A00A51618 /* Resources */,
-				D616E6881E94248200A51618 /* Localizer.swift */,
 			);
 			path = WikiDrips;
 			sourceTree = "<group>";
@@ -263,7 +256,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D6AE380B1E8ADC800076FB47 /* Assets.xcassets in Resources */,
-				D616E6841E9422D000A51618 /* Localizable.plist in Resources */,
 				D6AE38091E8ADC800076FB47 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -292,7 +284,6 @@
 				D6A8848B1E8FF61C00E905B6 /* WikiTableViewCell.swift in Sources */,
 				D6AE38041E8ADC800076FB47 /* AppDelegate.swift in Sources */,
 				D6A884891E8FF59700E905B6 /* WikiTableViewController.swift in Sources */,
-				D616E6891E94248200A51618 /* Localizer.swift in Sources */,
 				D6BF2DBB1E92C47100B8C6E0 /* WikiDoc.swift in Sources */,
 				D6BF2DB91E92C3DB00B8C6E0 /* WikiRequest.swift in Sources */,
 			);
@@ -330,15 +321,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		D616E6861E9422D000A51618 /* Localizable.plist */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D616E6851E9422D000A51618 /* Base */,
-				D616E6871E94245600A51618 /* en */,
-			);
-			name = Localizable.plist;
-			sourceTree = "<group>";
-		};
 		D6AE38071E8ADC800076FB47 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
