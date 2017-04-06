@@ -76,6 +76,9 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="EtM-6p-q7e"/>
+                    <connections>
+                        <outlet property="searchBar" destination="Lrq-mR-WBk" id="z8b-eA-wyh"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="m1a-SH-GKc" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
