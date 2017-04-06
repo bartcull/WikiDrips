@@ -7,13 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D6A884891E8FF59700E905B6 /* WikiTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */; };
+		D6A8848B1E8FF61C00E905B6 /* WikiTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */; };
 		D6AE38041E8ADC800076FB47 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AE38031E8ADC800076FB47 /* AppDelegate.swift */; };
-		D6AE38061E8ADC800076FB47 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AE38051E8ADC800076FB47 /* ViewController.swift */; };
 		D6AE38091E8ADC800076FB47 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D6AE38071E8ADC800076FB47 /* Main.storyboard */; };
 		D6AE380B1E8ADC800076FB47 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D6AE380A1E8ADC800076FB47 /* Assets.xcassets */; };
-		D6AE380E1E8ADC800076FB47 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D6AE380C1E8ADC800076FB47 /* LaunchScreen.storyboard */; };
 		D6AE38191E8ADC800076FB47 /* WikiDripsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AE38181E8ADC800076FB47 /* WikiDripsTests.swift */; };
 		D6AE38241E8ADC800076FB47 /* WikiDripsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AE38231E8ADC800076FB47 /* WikiDripsUITests.swift */; };
+		D6BF2DB91E92C3DB00B8C6E0 /* WikiRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BF2DB81E92C3DB00B8C6E0 /* WikiRequest.swift */; };
+		D6BF2DBB1E92C47100B8C6E0 /* WikiDoc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BF2DBA1E92C47100B8C6E0 /* WikiDoc.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,12 +36,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiTableViewController.swift; sourceTree = "<group>"; };
+		D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiTableViewCell.swift; sourceTree = "<group>"; };
 		D6AE38001E8ADC800076FB47 /* WikiDrips.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WikiDrips.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6AE38031E8ADC800076FB47 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		D6AE38051E8ADC800076FB47 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		D6AE38081E8ADC800076FB47 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		D6AE380A1E8ADC800076FB47 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		D6AE380D1E8ADC800076FB47 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D6AE380F1E8ADC800076FB47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D6AE38141E8ADC800076FB47 /* WikiDripsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WikiDripsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6AE38181E8ADC800076FB47 /* WikiDripsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WikiDripsTests.swift; sourceTree = "<group>"; };
@@ -47,6 +49,8 @@
 		D6AE381F1E8ADC800076FB47 /* WikiDripsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WikiDripsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6AE38231E8ADC800076FB47 /* WikiDripsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WikiDripsUITests.swift; sourceTree = "<group>"; };
 		D6AE38251E8ADC800076FB47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D6BF2DB81E92C3DB00B8C6E0 /* WikiRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiRequest.swift; sourceTree = "<group>"; };
+		D6BF2DBA1E92C47100B8C6E0 /* WikiDoc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiDoc.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +78,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D616E6811E94224A00A51618 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		D6A884901E9002AE00E905B6 /* Wikipedia */ = {
+			isa = PBXGroup;
+			children = (
+				D6BF2DB81E92C3DB00B8C6E0 /* WikiRequest.swift */,
+				D6BF2DBA1E92C47100B8C6E0 /* WikiDoc.swift */,
+			);
+			name = Wikipedia;
+			sourceTree = "<group>";
+		};
 		D6AE37F71E8ADC800076FB47 = {
 			isa = PBXGroup;
 			children = (
@@ -97,12 +117,14 @@
 		D6AE38021E8ADC800076FB47 /* WikiDrips */ = {
 			isa = PBXGroup;
 			children = (
-				D6AE38031E8ADC800076FB47 /* AppDelegate.swift */,
-				D6AE38051E8ADC800076FB47 /* ViewController.swift */,
 				D6AE38071E8ADC800076FB47 /* Main.storyboard */,
+				D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */,
+				D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */,
+				D6A884901E9002AE00E905B6 /* Wikipedia */,
 				D6AE380A1E8ADC800076FB47 /* Assets.xcassets */,
-				D6AE380C1E8ADC800076FB47 /* LaunchScreen.storyboard */,
+				D6AE38031E8ADC800076FB47 /* AppDelegate.swift */,
 				D6AE380F1E8ADC800076FB47 /* Info.plist */,
+				D616E6811E94224A00A51618 /* Resources */,
 			);
 			path = WikiDrips;
 			sourceTree = "<group>";
@@ -193,6 +215,7 @@
 				TargetAttributes = {
 					D6AE37FF1E8ADC800076FB47 = {
 						CreatedOnToolsVersion = 8.3;
+						DevelopmentTeam = 62J96EUJ9N;
 						ProvisioningStyle = Automatic;
 					};
 					D6AE38131E8ADC800076FB47 = {
@@ -232,7 +255,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D6AE380E1E8ADC800076FB47 /* LaunchScreen.storyboard in Resources */,
 				D6AE380B1E8ADC800076FB47 /* Assets.xcassets in Resources */,
 				D6AE38091E8ADC800076FB47 /* Main.storyboard in Resources */,
 			);
@@ -259,8 +281,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D6AE38061E8ADC800076FB47 /* ViewController.swift in Sources */,
+				D6A8848B1E8FF61C00E905B6 /* WikiTableViewCell.swift in Sources */,
 				D6AE38041E8ADC800076FB47 /* AppDelegate.swift in Sources */,
+				D6A884891E8FF59700E905B6 /* WikiTableViewController.swift in Sources */,
+				D6BF2DBB1E92C47100B8C6E0 /* WikiDoc.swift in Sources */,
+				D6BF2DB91E92C3DB00B8C6E0 /* WikiRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,14 +327,6 @@
 				D6AE38081E8ADC800076FB47 /* Base */,
 			);
 			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		D6AE380C1E8ADC800076FB47 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D6AE380D1E8ADC800076FB47 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -414,7 +431,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 62J96EUJ9N;
 				INFOPLIST_FILE = WikiDrips/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.WikiDrips;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -426,7 +445,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 62J96EUJ9N;
 				INFOPLIST_FILE = WikiDrips/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.WikiDrips;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -507,6 +528,7 @@
 				D6AE382A1E8ADC800076FB47 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D6AE382B1E8ADC800076FB47 /* Build configuration list for PBXNativeTarget "WikiDripsTests" */ = {
 			isa = XCConfigurationList;
@@ -515,6 +537,7 @@
 				D6AE382D1E8ADC800076FB47 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D6AE382E1E8ADC800076FB47 /* Build configuration list for PBXNativeTarget "WikiDripsUITests" */ = {
 			isa = XCConfigurationList;
@@ -523,6 +546,7 @@
 				D6AE38301E8ADC800076FB47 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
