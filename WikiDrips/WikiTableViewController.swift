@@ -80,10 +80,9 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
-        if let initials = wikiDoc.imageInitials {
-            if let imageView = wikiCell.wikiTitleImage as? TitleImageView {
-                imageView.image = imageView.drawImageWith(initials: initials)
-            }
+        
+        if let rectangle = wikiCell.wikiTitleImage?.bounds {
+            wikiCell.wikiTitleImage?.image = #imageLiteral(resourceName: "PlaceHolderImage").image(withInitials: wikiDoc.imageInitials, in: rectangle)
         }
         
         return wikiCell
