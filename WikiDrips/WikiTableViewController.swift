@@ -76,13 +76,17 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
             // Log or ignore casting failure
             return UITableViewCell()
         }
-
+        
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
-//        wikiCell.wikiTitleImage?.image = wikiDoc.imageInitials // TODO: Generate UIImage
-
+        if let initials = wikiDoc.imageInitials {
+            if let imageView = wikiCell.wikiTitleImage as? TitleImageView {
+                imageView.image = imageView.drawImageWith(initials: initials)
+            }
+        }
+        
         return wikiCell
     }
-    
+
 }

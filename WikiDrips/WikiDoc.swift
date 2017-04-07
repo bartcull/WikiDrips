@@ -29,7 +29,7 @@ public class WikiDoc
                 return nil
             }
             
-            return initials
+            return initials.uppercased()
         }
     }
     

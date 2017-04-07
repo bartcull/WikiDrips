@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D673E66D1E97054C00F276A4 /* TitleImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D673E66C1E97054C00F276A4 /* TitleImageView.swift */; };
 		D6A884891E8FF59700E905B6 /* WikiTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */; };
 		D6A8848B1E8FF61C00E905B6 /* WikiTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */; };
 		D6AE38041E8ADC800076FB47 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AE38031E8ADC800076FB47 /* AppDelegate.swift */; };
@@ -36,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D673E66C1E97054C00F276A4 /* TitleImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TitleImageView.swift; sourceTree = "<group>"; };
 		D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiTableViewController.swift; sourceTree = "<group>"; };
 		D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiTableViewCell.swift; sourceTree = "<group>"; };
 		D6AE38001E8ADC800076FB47 /* WikiDrips.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WikiDrips.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -120,6 +122,7 @@
 				D6AE38071E8ADC800076FB47 /* Main.storyboard */,
 				D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */,
 				D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */,
+				D673E66C1E97054C00F276A4 /* TitleImageView.swift */,
 				D6A884901E9002AE00E905B6 /* Wikipedia */,
 				D6AE380A1E8ADC800076FB47 /* Assets.xcassets */,
 				D6AE38031E8ADC800076FB47 /* AppDelegate.swift */,
@@ -282,6 +285,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D6A8848B1E8FF61C00E905B6 /* WikiTableViewCell.swift in Sources */,
+				D673E66D1E97054C00F276A4 /* TitleImageView.swift in Sources */,
 				D6AE38041E8ADC800076FB47 /* AppDelegate.swift in Sources */,
 				D6A884891E8FF59700E905B6 /* WikiTableViewController.swift in Sources */,
 				D6BF2DBB1E92C47100B8C6E0 /* WikiDoc.swift in Sources */,
