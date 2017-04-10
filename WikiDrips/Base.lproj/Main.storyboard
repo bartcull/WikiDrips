@@ -28,7 +28,7 @@
                                 <rect key="frame" x="0.0" y="72" width="375" height="84"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Gj5-b8-q5Y" id="gF2-Th-PN7">
-                                    <rect key="frame" x="0.0" y="0.0" width="375" height="83.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="84"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cpC-La-KFN">
@@ -64,7 +64,7 @@
                                 </tableViewCellContentView>
                                 <connections>
                                     <outlet property="wikiDateLabel" destination="iw9-u7-B4m" id="pGB-t1-HDL"/>
-                                    <outlet property="wikiTitleImage" destination="ZIH-lW-ltS" id="rc5-Tb-cmT"/>
+                                    <outlet property="wikiTitleImageView" destination="ZIH-lW-ltS" id="qgP-bV-MH6"/>
                                     <outlet property="wikiTitleLabel" destination="cpC-La-KFN" id="cEF-Ff-C7M"/>
                                 </connections>
                             </tableViewCell>

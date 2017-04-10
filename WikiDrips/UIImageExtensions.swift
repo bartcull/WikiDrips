@@ -10,7 +10,7 @@ import UIKit
 
 extension UIImage {
     
-    func image(withInitials: String?, in bounds: CGRect) -> UIImage {
+    static func image(withInitials initials: String?, in bounds: CGRect) -> UIImage {
         let scale = UIScreen.main.scale
         
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, scale)
@@ -18,7 +18,7 @@ extension UIImage {
             UIGraphicsEndImageContext()
         }
         
-        guard let initials = withInitials, let context = UIGraphicsGetCurrentContext() else {
+        guard let monogram = initials, let context = UIGraphicsGetCurrentContext() else {
             return #imageLiteral(resourceName: "PlaceHolderImage")
         }
 
@@ -30,12 +30,12 @@ extension UIImage {
         context.fill(bounds)
         
         let textAttrs: [String : AnyObject] = [NSForegroundColorAttributeName : UIColor.white]
-        let textRectSize = initials.size(attributes: textAttrs)
-        let textRect = CGRect(x: bounds.size.width / 2 - textRectSize.width / 2,
-                              y: bounds.size.height / 2 - textRectSize.height / 2,
+        let textRectSize = monogram.size(attributes: textAttrs)
+        let textRect = CGRect(x: bounds.midX - textRectSize.width / 2,
+                              y: bounds.midY - textRectSize.height / 2,
                               width: textRectSize.width,
-                              height: textRectSize.height)
-        initials.draw(in: textRect, withAttributes: textAttrs)
+                              height: textRectSize.height).integral
+        monogram.draw(in: textRect, withAttributes: textAttrs)
         
         guard let image = UIGraphicsGetImageFromCurrentImageContext() else {
             return #imageLiteral(resourceName: "PlaceHolderImage")
