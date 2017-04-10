@@ -18,7 +18,7 @@ extension UIImage {
             UIGraphicsEndImageContext()
         }
         
-        guard let monogram = initials, let context = UIGraphicsGetCurrentContext() else {
+        guard let initials = initials, let context = UIGraphicsGetCurrentContext() else {
             return #imageLiteral(resourceName: "PlaceHolderImage")
         }
 
@@ -30,12 +30,12 @@ extension UIImage {
         context.fill(bounds)
         
         let textAttrs: [String : AnyObject] = [NSForegroundColorAttributeName : UIColor.white]
-        let textRectSize = monogram.size(attributes: textAttrs)
+        let textRectSize = initials.size(attributes: textAttrs)
         let textRect = CGRect(x: bounds.midX - textRectSize.width / 2,
                               y: bounds.midY - textRectSize.height / 2,
                               width: textRectSize.width,
                               height: textRectSize.height).integral
-        monogram.draw(in: textRect, withAttributes: textAttrs)
+        initials.draw(in: textRect, withAttributes: textAttrs)
         
         guard let image = UIGraphicsGetImageFromCurrentImageContext() else {
             return #imageLiteral(resourceName: "PlaceHolderImage")
