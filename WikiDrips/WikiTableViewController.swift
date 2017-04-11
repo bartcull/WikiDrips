@@ -16,12 +16,7 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         searchBar?.delegate = self
-        
-        dateFormatter.dateStyle = .long
-        dateFormatter.timeStyle = .short
-        
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
     }
@@ -30,7 +25,7 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
     
     var wikiDocs = [[WikiDoc]]()
     
-    var searchText: String? = "Salesforce" {
+    var searchText: String? {
         didSet {
             searchBar?.text = searchText
             wikiDocs.removeAll()
@@ -52,13 +47,19 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
     }
     
     func search() {
-//      TODO: replace with async call to Wikipedia API
-        let someDateTime = Date(timeIntervalSinceNow: -(Double(wikiDocs.count) * 60))
-        let testData: [String: AnyObject] = ["title": "My new title" as AnyObject, "pubDate": someDateTime as AnyObject]
-        if let wikiDoc = WikiDoc(data: testData) {
-            wikiDocs.insert([wikiDoc], at: 0)
+        guard let searchText = searchText else {
+            return
         }
-        tableView.reloadData()
+        if let wikiRequest = WikiRequest(searchText: searchText) {
+            wikiRequest.fetchWikiDocs { (newDocs) -> Void in
+                DispatchQueue.main.async(){
+                    if newDocs.count > 0 {
+                        self.wikiDocs = wikiRequest.wikiDocs
+                        self.tableView.reloadData()
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Table view data source
@@ -79,13 +80,24 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
         
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
-        wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
+        wikiCell.wikiDateLabel?.text = formattedDate(isoDate: wikiDoc.pubDate)
         
         if let rectangle = wikiCell.wikiTitleImageView?.bounds {
             wikiCell.wikiTitleImageView?.image = UIImage.image(withInitials: wikiDoc.imageInitials, in: rectangle)
         }
         
         return wikiCell
+    }
+    
+    private func formattedDate(isoDate: String?) -> String {
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        if let isoDate = isoDate, let date = dateFormatter.date(from: isoDate) {
+            dateFormatter.dateStyle = .long
+            dateFormatter.timeStyle = .short
+            return dateFormatter.string(from: date)
+        } else {
+            return ""
+        }
     }
 
 }

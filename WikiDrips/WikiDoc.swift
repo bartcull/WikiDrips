@@ -8,10 +8,10 @@
 
 import Foundation
 
-public class WikiDoc
+public struct WikiDoc
 {
     public let title: String
-    public let pubDate: Date
+    public let pubDate: String?
     public var imageInitials: String? {
         get {
             let nameArray = self.title.components(separatedBy: " ")
@@ -33,20 +33,12 @@ public class WikiDoc
         }
     }
     
-    init? (data: [String: AnyObject]?) {
-        if let incomingTitle = data?["title"] as? String {
-            if let incomingDate = data?["pubDate"] as? Date {
-                pubDate = incomingDate
-                title = incomingTitle
-                return
-            }
-        }
-        
-//      Make sure properties are set
-        title = NSLocalizedString("defaultTitle", comment: "Default title for wikiDoc")
-        pubDate = Date()
-        return nil
+    init? (data: [String: Any]?) {
+        guard let title = data?["title"] as? String else { return nil }
+        guard let date = data?["timestamp"] as? String else { return nil }
 
+        self.title = title
+        self.pubDate = date
     }
     
 }
