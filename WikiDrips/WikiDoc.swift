@@ -11,7 +11,7 @@ import Foundation
 public struct WikiDoc
 {
     public let title: String
-    public let pubDate: String?
+    public let date: Date
     public var imageInitials: String? {
         get {
             let nameArray = self.title.components(separatedBy: " ")
@@ -31,14 +31,6 @@ public struct WikiDoc
             
             return initials.uppercased()
         }
-    }
-    
-    init? (data: [String: Any]?) {
-        guard let title = data?["title"] as? String else { return nil }
-        guard let date = data?["timestamp"] as? String else { return nil }
-
-        self.title = title
-        self.pubDate = date
     }
     
 }

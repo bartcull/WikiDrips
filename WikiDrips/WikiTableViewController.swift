@@ -19,6 +19,9 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
         searchBar?.delegate = self
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
+        
+        dateFormatter.dateStyle = .long
+        dateFormatter.timeStyle = .short
     }
     
     // MARK: - Searching
@@ -47,16 +50,16 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
     }
     
     func search() {
-        guard let searchText = searchText else {
+        guard let searchText = searchText,
+            let wikiRequest = WikiRequest(searchText: searchText) else {
             return
         }
-        if let wikiRequest = WikiRequest(searchText: searchText) {
-            wikiRequest.fetchWikiDocs { (newDocs) -> Void in
-                DispatchQueue.main.async(){
-                    if newDocs.count > 0 {
-                        self.wikiDocs = wikiRequest.wikiDocs
-                        self.tableView.reloadData()
-                    }
+
+        wikiRequest.fetchWikiDocs { newDocs in
+            DispatchQueue.main.async(){
+                if newDocs.count > 0 {
+                    self.wikiDocs = [newDocs]
+                    self.tableView.reloadData()
                 }
             }
         }
@@ -80,7 +83,7 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
         
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
-        wikiCell.wikiDateLabel?.text = formattedDate(isoDate: wikiDoc.pubDate)
+        wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         
         if let rectangle = wikiCell.wikiTitleImageView?.bounds {
             wikiCell.wikiTitleImageView?.image = UIImage.image(withInitials: wikiDoc.imageInitials, in: rectangle)
@@ -89,15 +92,4 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
         return wikiCell
     }
     
-    private func formattedDate(isoDate: String?) -> String {
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        if let isoDate = isoDate, let date = dateFormatter.date(from: isoDate) {
-            dateFormatter.dateStyle = .long
-            dateFormatter.timeStyle = .short
-            return dateFormatter.string(from: date)
-        } else {
-            return ""
-        }
-    }
-
 }
