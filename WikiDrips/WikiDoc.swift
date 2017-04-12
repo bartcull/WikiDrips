@@ -29,15 +29,24 @@ public class WikiDoc
                 return nil
             }
             
-            return initials
+            return initials.uppercased()
         }
     }
     
     init? (data: [String: AnyObject]?) {
+        if let incomingTitle = data?["title"] as? String {
+            if let incomingDate = data?["pubDate"] as? Date {
+                pubDate = incomingDate
+                title = incomingTitle
+                return
+            }
+        }
         
 //      Make sure properties are set
         title = NSLocalizedString("defaultTitle", comment: "Default title for wikiDoc")
         pubDate = Date()
+        return nil
+
     }
     
 }

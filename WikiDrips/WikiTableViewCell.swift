@@ -10,8 +10,8 @@ import UIKit
 
 class WikiTableViewCell: UITableViewCell {
 
-    @IBOutlet weak var wikiTitleImage: UIImageView?
+    @IBOutlet weak var wikiTitleImageView: UIImageView?
     @IBOutlet weak var wikiTitleLabel: UILabel?
     @IBOutlet weak var wikiDateLabel: UILabel?
-    
+
 }

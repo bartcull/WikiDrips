@@ -8,21 +8,57 @@
 
 import UIKit
 
-class WikiTableViewController: UITableViewController {
+class WikiTableViewController: UITableViewController, UISearchBarDelegate {
+    
+    // MARK: - View Controller Lifecycle
 
-    var wikiDocs = [[WikiDoc]]()
     let dateFormatter = DateFormatter()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        searchBar?.delegate = self
+        
         dateFormatter.dateStyle = .long
         dateFormatter.timeStyle = .short
         
+        tableView.estimatedRowHeight = tableView.rowHeight
+        tableView.rowHeight = UITableViewAutomaticDimension
+    }
+    
+    // MARK: - Searching
+    
+    var wikiDocs = [[WikiDoc]]()
+    
+    var searchText: String? = "Salesforce" {
+        didSet {
+            searchBar?.text = searchText
+            wikiDocs.removeAll()
+            tableView.reloadData() // clear out the table view
+            search()
+        }
+    }
+    
+    @IBOutlet weak var searchBar: UISearchBar? {
+        didSet {
+            searchBar?.delegate = self
+            searchBar?.text = searchText
+        }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchText = searchBar.text
+        self.tableView.reloadData()
+    }
+    
+    func search() {
 //      TODO: replace with async call to Wikipedia API
-        if let wikiDoc = WikiDoc(data: nil) {
+        let someDateTime = Date(timeIntervalSinceNow: -(Double(wikiDocs.count) * 60))
+        let testData: [String: AnyObject] = ["title": "My new title" as AnyObject, "pubDate": someDateTime as AnyObject]
+        if let wikiDoc = WikiDoc(data: testData) {
             wikiDocs.insert([wikiDoc], at: 0)
         }
+        tableView.reloadData()
     }
 
     // MARK: - Table view data source
@@ -40,59 +76,16 @@ class WikiTableViewController: UITableViewController {
             // Log or ignore casting failure
             return UITableViewCell()
         }
-
+        
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
-//        wikiCell.wikiTitleImage?.image = wikiDoc.imageInitials // TODO: Generate UIImage
-
+        
+        if let rectangle = wikiCell.wikiTitleImageView?.bounds {
+            wikiCell.wikiTitleImageView?.image = UIImage.image(withInitials: wikiDoc.imageInitials, in: rectangle)
+        }
+        
         return wikiCell
     }
-    
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }

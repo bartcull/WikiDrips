@@ -13,10 +13,6 @@ import CoreLocation
 
 public class WikiRequest
 {
-//    func fetchWikiDoc() -> WikiDoc {
-//        return WikiDoc()
-//    }
-    
     public func fetchWikiDoc(handler: @escaping ([WikiDoc]) -> Void) {
 //      TODO: make api requests
             var wikiDocs = [WikiDoc]()
