@@ -46,17 +46,17 @@ public class WikiRequest
                     let results = query["search"] as? [Any] else {
                     return
                 }
-                var wikiDocs = [WikiDoc]()
+
                 let isoDateFormatter = ISO8601DateFormatter()
-                for item in results {
-                    guard let item = item as? [String: Any],
+
+                let wikiDocs: [WikiDoc] = results.flatMap {
+                    guard let item = $0 as? [String: Any],
                         let title = item["title"] as? String,
                         let isoDate = item["timestamp"] as? String,
                         let date = isoDateFormatter.date(from: isoDate) else {
-                        break
+                        return nil
                     }
-                    
-                    wikiDocs.insert(WikiDoc(title: title, date: date), at: 0)
+                    return WikiDoc(title: title, date: date)
                 }
                 
                 handler(wikiDocs)

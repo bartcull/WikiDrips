@@ -55,11 +55,12 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
             return
         }
 
-        wikiRequest.fetchWikiDocs { newDocs in
+        wikiRequest.fetchWikiDocs { [weak self] newDocs in
+            guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if newDocs.count > 0 {
-                    self.wikiDocs = [newDocs]
-                    self.tableView.reloadData()
+                    strongSelf.wikiDocs = [newDocs]
+                    strongSelf.tableView.reloadData()
                 }
             }
         }
