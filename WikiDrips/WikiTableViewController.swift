@@ -8,15 +8,21 @@
 
 import UIKit
 
-class WikiTableViewController: UITableViewController, UISearchBarDelegate {
+class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
     
     // MARK: - View Controller Lifecycle
 
     let dateFormatter = DateFormatter()
+    let searchController = UISearchController(searchResultsController: nil)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        searchBar?.delegate = self
+
+        searchController.searchResultsUpdater = self
+        searchController.dimsBackgroundDuringPresentation = false
+        definesPresentationContext = true
+        tableView.tableHeaderView = searchController.searchBar
+        
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
         
@@ -28,28 +34,12 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
     
     var wikiDocs = [[WikiDoc]]()
     
-    var searchText: String? {
-        didSet {
-            searchBar?.text = searchText
-            wikiDocs.removeAll()
-            tableView.reloadData() // clear out the table view
-            search()
-        }
+    func updateSearchResults(for: UISearchController) {
+        guard let searchText = searchController.searchBar.text, searchText.characters.count > 2 else { return }
+        search(for: searchText)
     }
     
-    @IBOutlet weak var searchBar: UISearchBar? {
-        didSet {
-            searchBar?.delegate = self
-            searchBar?.text = searchText
-        }
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchText = searchBar.text
-        self.tableView.reloadData()
-    }
-    
-    func search() {
+    func search(for searchText: String?) {
         guard let searchText = searchText,
             let wikiRequest = WikiRequest(searchText: searchText) else {
             return
