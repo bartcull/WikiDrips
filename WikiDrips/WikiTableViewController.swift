@@ -8,57 +8,52 @@
 
 import UIKit
 
-class WikiTableViewController: UITableViewController, UISearchBarDelegate {
+class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
     
     // MARK: - View Controller Lifecycle
 
     let dateFormatter = DateFormatter()
+    let searchController = UISearchController(searchResultsController: nil)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        searchBar?.delegate = self
-        
-        dateFormatter.dateStyle = .long
-        dateFormatter.timeStyle = .short
+
+        searchController.searchResultsUpdater = self
+        searchController.dimsBackgroundDuringPresentation = false
+        definesPresentationContext = true
+        tableView.tableHeaderView = searchController.searchBar
         
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
+        
+        dateFormatter.dateStyle = .long
+        dateFormatter.timeStyle = .short
     }
     
     // MARK: - Searching
     
     var wikiDocs = [[WikiDoc]]()
     
-    var searchText: String? = "Salesforce" {
-        didSet {
-            searchBar?.text = searchText
-            wikiDocs.removeAll()
-            tableView.reloadData() // clear out the table view
-            search()
-        }
+    func updateSearchResults(for: UISearchController) {
+        guard let searchText = searchController.searchBar.text, searchText.characters.count > 2 else { return }
+        search(for: searchText)
     }
     
-    @IBOutlet weak var searchBar: UISearchBar? {
-        didSet {
-            searchBar?.delegate = self
-            searchBar?.text = searchText
+    func search(for searchText: String?) {
+        guard let searchText = searchText,
+            let wikiRequest = WikiRequest(searchText: searchText) else {
+            return
         }
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchText = searchBar.text
-        self.tableView.reloadData()
-    }
-    
-    func search() {
-//      TODO: replace with async call to Wikipedia API
-        let someDateTime = Date(timeIntervalSinceNow: -(Double(wikiDocs.count) * 60))
-        let testData: [String: AnyObject] = ["title": "My new title" as AnyObject, "pubDate": someDateTime as AnyObject]
-        if let wikiDoc = WikiDoc(data: testData) {
-            wikiDocs.insert([wikiDoc], at: 0)
+
+        wikiRequest.fetchWikiDocs { [weak self] newDocs in
+            guard let strongSelf = self else { return }
+            DispatchQueue.main.async(){
+                if newDocs.count > 0 {
+                    strongSelf.wikiDocs = [newDocs]
+                    strongSelf.tableView.reloadData()
+                }
+            }
         }
-        tableView.reloadData()
     }
 
     // MARK: - Table view data source
@@ -79,7 +74,7 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
         
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
-        wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.pubDate)
+        wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         
         if let rectangle = wikiCell.wikiTitleImageView?.bounds {
             wikiCell.wikiTitleImageView?.image = UIImage.image(withInitials: wikiDoc.imageInitials, in: rectangle)
@@ -87,5 +82,5 @@ class WikiTableViewController: UITableViewController, UISearchBarDelegate {
         
         return wikiCell
     }
-
+    
 }
