@@ -14,6 +14,7 @@ class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
 
     let dateFormatter = DateFormatter()
     let searchController = UISearchController(searchResultsController: nil)
+    private var imageCache = NSCache<NSString, UIImage>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -76,9 +77,23 @@ class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         
-        if let rectangle = wikiCell.wikiTitleImageView?.bounds {
-            wikiCell.wikiTitleImageView?.image = UIImage.image(withInitials: wikiDoc.imageInitials, in: rectangle)
+        guard let initials = wikiDoc.imageInitials, let rectangle = wikiCell.wikiTitleImageView?.bounds else {
+            return wikiCell
         }
+        
+        let cacheKey:NSString = initials as NSString //NSCache won't take String, so casting to NSString
+        
+        var image: UIImage
+        if let cachedImage = imageCache.object(forKey: cacheKey) {
+            print("Getting cache")
+            image = cachedImage
+        } else {
+            print("Generating image")
+            image = UIImage.image(withInitials: initials, in: rectangle)
+            imageCache.setObject(image, forKey: cacheKey)
+        }
+    
+        wikiCell.wikiTitleImageView?.image = image
         
         return wikiCell
     }
