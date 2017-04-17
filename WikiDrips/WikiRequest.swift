@@ -7,11 +7,13 @@
 //
 
 import Foundation
+import os.log
 
-public class WikiRequest
-{
+public class WikiRequest {
+
     static let searchLimit = 100
-    
+    static let rq_log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiRequest")
+
     let session = URLSession.shared
     let searchText: String
     let offset: Int
@@ -27,6 +29,7 @@ public class WikiRequest
         guard let urlRequest = urlRequest(searchText: searchText) else {
             return
         }
+
         task = session.dataTask(with: urlRequest) {
             (data, response, error) in
             // make sure request wasn't cancelled
@@ -34,23 +37,25 @@ public class WikiRequest
             
             // check for any errors
             guard error == nil else {
-                if let error = error as NSError?, error.code == NSURLErrorCancelled {
+                guard let error = error as NSError? else { return }
+                var log_type = (code: OSLogType.error, description: "Error")
+                if error.code == NSURLErrorCancelled {
                     self.isCancelled = true
-                    return
+                    log_type.code = .debug
+                    log_type.description = "Debug"
                 }
-                print("error calling GET on \(urlRequest)")
-                print(error!)
+                os_log("%@: %@", log: WikiRequest.rq_log, type: log_type.code, log_type.description, error as CVarArg)
                 return
             }
             // make sure we got data
             guard let data = data else {
-                print("Error: did not receive data")
+                os_log("Error: did not receive data", log: WikiRequest.rq_log, type: .error)
                 return
             }
             // parse the result as JSON
             do {
                 guard let response = try? JSONSerialization.jsonObject(with: data, options: []) else {
-                    print("error trying to convert data to JSON")
+                    os_log("Error trying to convert data to JSON", log: WikiRequest.rq_log, type: .error)
                     return
                 }
                 
@@ -98,7 +103,7 @@ public class WikiRequest
         ]
 
         guard let url = endpoint.url else {
-            print("Error: cannot create URL")
+            os_log("Error: cannot create URL for searchText %@.", log: WikiRequest.rq_log, type: .error, searchText)
             return nil
         }
 

@@ -7,14 +7,16 @@
 //
 
 import UIKit
+import os.log
 
 class WikiTableViewController: UITableViewController {
-    
-    // MARK: - View Controller Lifecycle
-    
+
+    static let wtvc_log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiTableViewController")
     let dateFormatter = DateFormatter()
     let searchController = UISearchController(searchResultsController: nil)
     fileprivate var imageCache = ImageCache()
+    
+    // MARK: - View Controller Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -88,7 +90,7 @@ class WikiTableViewController: UITableViewController {
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if wikiRequest.isCancelled {
-                    print("Cancelled in search completion block")
+                    os_log("Cancelled in search completion block", log: WikiTableViewController.wtvc_log, type: .debug)
                     return
                 }
                 if newDocs.count > 0 {
@@ -130,13 +132,19 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func checkImage(forItemAtIndex indexPath: IndexPath) {
-        guard safeIndexPath(indexPath: indexPath) else { print("unsafe indexpath"); return }
+        guard safeIndexPath(indexPath: indexPath) else {
+            os_log("Error: unsafe indexpath", log: WikiTableViewController.wtvc_log, type: .error)
+            return
+        }
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: nil)
     }
     
     fileprivate func checkImage(forItemAtIndex indexPath: IndexPath, withWikiDoc wikiDoc: WikiDoc, in imageView: UIImageView?) {
-        guard let initials = wikiDoc.imageInitials else { print("missing initials"); return }
+        guard let initials = wikiDoc.imageInitials else {
+            os_log("Error: missing initials", log: WikiTableViewController.wtvc_log, type: .error)
+            return
+        }
         if let cachedImage = imageCache.image(forKey: initials) {
             imageView?.image = cachedImage // Prefetch rows are ignored because they have no view yet
         } else {
@@ -153,11 +161,11 @@ class WikiTableViewController: UITableViewController {
             OperationQueue.main.addOperation { [weak self] in
                 self?.pendingImageTasks[indexPath] = nil
                 if generator.isCancelled {
-                    print("Cancelled in completion block")
+                    os_log("Cancelled in completion block", log: WikiTableViewController.wtvc_log, type: .debug)
                     return
                 }
                 guard let image = generator.image else {
-                    print("Error creating image") // I'll change this to error logging later
+                    os_log("Error creating image", log: WikiTableViewController.wtvc_log, type: .error)
                     return
                 }
                 self?.imageCache.setImage(image, forKey: initials)
@@ -181,7 +189,7 @@ class WikiTableViewController: UITableViewController {
                     guard let sender = sender as? WikiTableViewCell else { break }
                     guard let indexPath = tableView.indexPath(for: sender),
                         safeIndexPath(indexPath: indexPath)
-                        else { print("Error with indexpath"); break }
+                        else { os_log("Error: unsafe indexpath", log: WikiTableViewController.wtvc_log, type: .error); break }
                     
                     let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
                     
@@ -205,7 +213,7 @@ class WikiTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let wikiCell = tableView.dequeueReusableCell(withIdentifier: "WikiDoc", for: indexPath) as? WikiTableViewCell else {
-            // Log or ignore casting failure
+            // Ignore casting failure
             return UITableViewCell()
         }
         

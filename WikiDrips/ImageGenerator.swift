@@ -8,8 +8,10 @@
 
 import Foundation
 import UIKit
+import os.log
 
-class ImageGenerator: Operation{
+class ImageGenerator: Operation {
+    static let ig_log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "ImageGenerator")
     let initials: String
     var image: UIImage?
     
@@ -18,7 +20,10 @@ class ImageGenerator: Operation{
     }
     
     override func main() {
-        if isCancelled { print("Cancelled"); return }
+        if isCancelled {
+            os_log("Image generation cancelled.", log: ImageGenerator.ig_log, type: .debug)
+            return
+        }
         image = UIImage.image(withInitials: initials, size: CGSize(width:32, height:32))
     }
 }
