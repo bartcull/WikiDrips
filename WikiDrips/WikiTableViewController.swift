@@ -83,17 +83,17 @@ class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
         
         let cacheKey:NSString = initials as NSString //NSCache won't take String, so casting to NSString
         
-        var image: UIImage
         if let cachedImage = imageCache.object(forKey: cacheKey) {
-            print("Getting cache")
-            image = cachedImage
+            wikiCell.wikiTitleImageView?.image = cachedImage
         } else {
-            print("Generating image")
-            image = UIImage.image(withInitials: initials, in: rectangle)
-            imageCache.setObject(image, forKey: cacheKey)
+            DispatchQueue.global().async {
+                let generatedImage = UIImage.image(withInitials: initials, in: rectangle)
+                DispatchQueue.main.async() { [weak self] in
+                    wikiCell.wikiTitleImageView?.image = generatedImage
+                    self?.imageCache.setObject(generatedImage, forKey: cacheKey)
+                }
+            }
         }
-    
-        wikiCell.wikiTitleImageView?.image = image
         
         return wikiCell
     }
