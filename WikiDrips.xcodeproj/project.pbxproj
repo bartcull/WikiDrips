@@ -17,6 +17,7 @@
 		D6AE38241E8ADC800076FB47 /* WikiDripsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6AE38231E8ADC800076FB47 /* WikiDripsUITests.swift */; };
 		D6BF2DB91E92C3DB00B8C6E0 /* WikiRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BF2DB81E92C3DB00B8C6E0 /* WikiRequest.swift */; };
 		D6BF2DBB1E92C47100B8C6E0 /* WikiDoc.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BF2DBA1E92C47100B8C6E0 /* WikiDoc.swift */; };
+		D6F5F9BB1EA6975D00A7D5C0 /* ImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F5F9BA1EA6975C00A7D5C0 /* ImageGenerator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,7 @@
 		D6AE38251E8ADC800076FB47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D6BF2DB81E92C3DB00B8C6E0 /* WikiRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiRequest.swift; sourceTree = "<group>"; };
 		D6BF2DBA1E92C47100B8C6E0 /* WikiDoc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WikiDoc.swift; sourceTree = "<group>"; };
+		D6F5F9BA1EA6975C00A7D5C0 /* ImageGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageGenerator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +124,7 @@
 				D6AE38071E8ADC800076FB47 /* Main.storyboard */,
 				D6A8848A1E8FF61C00E905B6 /* WikiTableViewCell.swift */,
 				D6A884881E8FF59700E905B6 /* WikiTableViewController.swift */,
+				D6F5F9BA1EA6975C00A7D5C0 /* ImageGenerator.swift */,
 				D673E66C1E97054C00F276A4 /* UIImageExtensions.swift */,
 				D6A884901E9002AE00E905B6 /* Wikipedia */,
 				D6AE380A1E8ADC800076FB47 /* Assets.xcassets */,
@@ -287,6 +290,7 @@
 				D6A8848B1E8FF61C00E905B6 /* WikiTableViewCell.swift in Sources */,
 				D673E66D1E97054C00F276A4 /* UIImageExtensions.swift in Sources */,
 				D6AE38041E8ADC800076FB47 /* AppDelegate.swift in Sources */,
+				D6F5F9BB1EA6975D00A7D5C0 /* ImageGenerator.swift in Sources */,
 				D6A884891E8FF59700E905B6 /* WikiTableViewController.swift in Sources */,
 				D6BF2DBB1E92C47100B8C6E0 /* WikiDoc.swift in Sources */,
 				D6BF2DB91E92C3DB00B8C6E0 /* WikiRequest.swift in Sources */,

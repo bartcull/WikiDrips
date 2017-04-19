@@ -10,7 +10,8 @@ import UIKit
 
 extension UIImage {
     
-    static func image(withInitials initials: String?, in bounds: CGRect) -> UIImage {
+    static func image(withInitials initials: String?) -> UIImage {
+        let bounds = CGRect(x:0,y:0,width:32,height:32)
         let scale = UIScreen.main.scale
         
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, scale)

@@ -56,7 +56,7 @@ public class WikiRequest
                         let date = isoDateFormatter.date(from: isoDate) else {
                         return nil
                     }
-                    return WikiDoc(title: title, date: date)
+                    return WikiDoc(title: title, date: date, image: nil)
                 }
                 
                 handler(wikiDocs)

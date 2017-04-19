@@ -8,16 +8,18 @@
 
 import UIKit
 
-class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
+class WikiTableViewController: UITableViewController {
     
     // MARK: - View Controller Lifecycle
 
     let dateFormatter = DateFormatter()
     let searchController = UISearchController(searchResultsController: nil)
-    private var imageCache = NSCache<NSString, UIImage>()
+    fileprivate var imageCache = NSCache<NSString, UIImage>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.prefetchDataSource = self
 
         searchController.searchResultsUpdater = self
         searchController.dimsBackgroundDuringPresentation = false
@@ -33,14 +35,9 @@ class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
     
     // MARK: - Searching
     
-    var wikiDocs = [[WikiDoc]]()
+    fileprivate var wikiDocs = [[WikiDoc]]()
     
-    func updateSearchResults(for: UISearchController) {
-        guard let searchText = searchController.searchBar.text, searchText.characters.count > 2 else { return }
-        search(for: searchText)
-    }
-    
-    func search(for searchText: String?) {
+    fileprivate func search(for searchText: String?) {
         guard let searchText = searchText,
             let wikiRequest = WikiRequest(searchText: searchText) else {
             return
@@ -50,11 +47,54 @@ class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if newDocs.count > 0 {
+                    strongSelf.imageTasks.cancelAllOperations() // This doesn't seem to do anything yet
                     strongSelf.wikiDocs = [newDocs]
                     strongSelf.tableView.reloadData()
                 }
             }
         }
+    }
+    
+    // MARK: - Image handling
+    
+    fileprivate let imageTasks = OperationQueue()
+    
+    fileprivate func generateImage(forItemAtIndex indexPath: IndexPath) {
+        guard safeIndexPath(indexPath: indexPath) else { return }
+        let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
+        guard let initials = wikiDoc.imageInitials else {
+            return
+        }
+        
+        let generator = ImageGenerator(initials: initials)
+        imageTasks.addOperation(generator)
+        
+        generator.completionBlock = {
+            sleep(4)
+            OperationQueue.main.addOperation { [weak self] in
+//                guard let strongSelf = self else { return }
+                guard let image = generator.image else {
+                    print("Error creating image") // I'll change this to error logging latero
+                    return
+                }
+                // Following is still throwing "fatal error: Index out of range"
+                guard (self?.safeIndexPath(indexPath: indexPath) ?? false) && self?.wikiDocs[indexPath.section][indexPath.row].imageInitials == initials else { return } // Ignore because WikiDoc no longer matches
+                
+                self?.wikiDocs[indexPath.section][indexPath.row].image = image
+                if self?.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
+                    guard let wikiCell = self?.tableView.cellForRow(at: indexPath) as? WikiTableViewCell else { return }
+                    wikiCell.wikiTitleImageView?.image = image
+                }
+            }
+        }
+    }
+    
+    private func safeIndexPath(indexPath: IndexPath) -> Bool {
+        return indexPath.section <= wikiDocs.count && indexPath.row <= wikiDocs[indexPath.section].count
+    }
+    
+    fileprivate func cancelImage(forItemAtIndex indexPath: IndexPath) {
+        // Still figuring out how to cancel
     }
 
     // MARK: - Table view data source
@@ -76,26 +116,36 @@ class WikiTableViewController: UITableViewController, UISearchResultsUpdating {
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
-        
-        guard let initials = wikiDoc.imageInitials, let rectangle = wikiCell.wikiTitleImageView?.bounds else {
-            return wikiCell
-        }
-        
-        let cacheKey:NSString = initials as NSString //NSCache won't take String, so casting to NSString
-        
-        if let cachedImage = imageCache.object(forKey: cacheKey) {
-            wikiCell.wikiTitleImageView?.image = cachedImage
+        if let image = wikiDoc.image {
+            print("From WikiDoc")
+            wikiCell.wikiTitleImageView?.image = image
         } else {
-            DispatchQueue.global().async {
-                let generatedImage = UIImage.image(withInitials: initials, in: rectangle)
-                DispatchQueue.main.async() { [weak self] in
-                    wikiCell.wikiTitleImageView?.image = generatedImage
-                    self?.imageCache.setObject(generatedImage, forKey: cacheKey)
-                }
-            }
+            wikiCell.wikiTitleImageView?.image = nil
+            generateImage(forItemAtIndex: indexPath)
         }
         
         return wikiCell
     }
     
+}
+
+// MARK: - UISearchResultsUpdating
+extension WikiTableViewController: UISearchResultsUpdating {
+    func updateSearchResults(for: UISearchController) {
+        guard let searchText = searchController.searchBar.text, searchText.characters.count > 2 else { return }
+        search(for: searchText)
+    }
+}
+
+// MARK: - UITableViewDataSourcePrefetching
+extension WikiTableViewController: UITableViewDataSourcePrefetching {
+    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+        print("prefetchRowsAt \(indexPaths)")
+        indexPaths.forEach { generateImage(forItemAtIndex: $0) }
+    }
+    
+    func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
+        print("cancelPrefetchingForRowsAt \(indexPaths)")
+        indexPaths.forEach { cancelImage(forItemAtIndex: $0) }
+    }
 }

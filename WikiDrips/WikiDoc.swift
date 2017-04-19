@@ -7,11 +7,13 @@
 //
 
 import Foundation
+import UIKit
 
 public struct WikiDoc
 {
     public let title: String
     public let date: Date
+    public var image: UIImage?
     public var imageInitials: String? {
         get {
             let nameArray = self.title.components(separatedBy: " ")
