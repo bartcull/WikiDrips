@@ -11,16 +11,16 @@ import UIKit
 class WikiTableViewController: UITableViewController {
     
     // MARK: - View Controller Lifecycle
-
+    
     let dateFormatter = DateFormatter()
     let searchController = UISearchController(searchResultsController: nil)
-    fileprivate var imageCache = NSCache<NSString, UIImage>()
+    fileprivate var imageCache = ImageCache()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.prefetchDataSource = self
-
+        
         searchController.searchResultsUpdater = self
         searchController.dimsBackgroundDuringPresentation = false
         definesPresentationContext = true
@@ -40,14 +40,14 @@ class WikiTableViewController: UITableViewController {
     fileprivate func search(for searchText: String?) {
         guard let searchText = searchText,
             let wikiRequest = WikiRequest(searchText: searchText) else {
-            return
+                return
         }
-
+        
         wikiRequest.fetchWikiDocs { [weak self] newDocs in
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if newDocs.count > 0 {
-                    strongSelf.imageTasks.cancelAllOperations() // This doesn't seem to do anything yet
+                    strongSelf.imageTasks.cancelAllOperations() // Clears the OperationQueue with consecutive searches
                     strongSelf.wikiDocs = [newDocs]
                     strongSelf.tableView.reloadData()
                 }
@@ -59,50 +59,53 @@ class WikiTableViewController: UITableViewController {
     
     fileprivate let imageTasks = OperationQueue()
     
-    fileprivate func generateImage(forItemAtIndex indexPath: IndexPath) {
-        guard safeIndexPath(indexPath: indexPath) else { return }
+    fileprivate func checkImage(forItemAtIndex indexPath: IndexPath) {
+        guard safeIndexPath(indexPath: indexPath) else { print("unsafe indexpath"); return }
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
-        guard let initials = wikiDoc.imageInitials else {
-            return
+        checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: nil)
+    }
+    
+    fileprivate func checkImage(forItemAtIndex indexPath: IndexPath, withWikiDoc wikiDoc: WikiDoc, in imageView: UIImageView?) {
+        guard let initials = wikiDoc.imageInitials else { print("missing initials"); return }
+        if let cachedImage = imageCache.image(forKey: initials) {
+            imageView?.image = cachedImage // Prefetch rows are ignored because they have no view yet
+        } else {
+            generateImage(forItemAtIndex: indexPath, withInitials: initials)
         }
-        
+    }
+    
+    fileprivate func generateImage(forItemAtIndex indexPath: IndexPath, withInitials initials: String) {
         let generator = ImageGenerator(initials: initials)
         imageTasks.addOperation(generator)
         
         generator.completionBlock = {
-            sleep(4)
             OperationQueue.main.addOperation { [weak self] in
-//                guard let strongSelf = self else { return }
-                guard let image = generator.image else {
-                    print("Error creating image") // I'll change this to error logging latero
+                if generator.isCancelled {
+                    print("Cancelled in completion block")
                     return
                 }
-                // Following is still throwing "fatal error: Index out of range"
-                guard (self?.safeIndexPath(indexPath: indexPath) ?? false) && self?.wikiDocs[indexPath.section][indexPath.row].imageInitials == initials else { return } // Ignore because WikiDoc no longer matches
-                
-                self?.wikiDocs[indexPath.section][indexPath.row].image = image
-                if self?.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
-                    guard let wikiCell = self?.tableView.cellForRow(at: indexPath) as? WikiTableViewCell else { return }
-                    wikiCell.wikiTitleImageView?.image = image
+                guard let image = generator.image else {
+                    print("Error creating image") // I'll change this to error logging later
+                    return
                 }
+                self?.imageCache.setImage(image, forKey: initials)
+                guard let wikiCell = self?.tableView.cellForRow(at: indexPath) as? WikiTableViewCell,
+                    let imageView = wikiCell.wikiTitleImageView else { return }
+                imageView.image = image
             }
         }
     }
     
     private func safeIndexPath(indexPath: IndexPath) -> Bool {
-        return indexPath.section <= wikiDocs.count && indexPath.row <= wikiDocs[indexPath.section].count
+        return (0..<wikiDocs.count).contains(indexPath.section) && (0..<wikiDocs[indexPath.section].count).contains(indexPath.row)
     }
     
-    fileprivate func cancelImage(forItemAtIndex indexPath: IndexPath) {
-        // Still figuring out how to cancel
-    }
-
     // MARK: - Table view data source
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         return wikiDocs.count
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return wikiDocs[section].count
     }
@@ -116,14 +119,8 @@ class WikiTableViewController: UITableViewController {
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
-        if let image = wikiDoc.image {
-            print("From WikiDoc")
-            wikiCell.wikiTitleImageView?.image = image
-        } else {
-            wikiCell.wikiTitleImageView?.image = nil
-            generateImage(forItemAtIndex: indexPath)
-        }
-        
+        wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")
+        checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: wikiCell.wikiTitleImageView)
         return wikiCell
     }
     
@@ -140,12 +137,23 @@ extension WikiTableViewController: UISearchResultsUpdating {
 // MARK: - UITableViewDataSourcePrefetching
 extension WikiTableViewController: UITableViewDataSourcePrefetching {
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
-        print("prefetchRowsAt \(indexPaths)")
-        indexPaths.forEach { generateImage(forItemAtIndex: $0) }
+        indexPaths.forEach {
+            checkImage(forItemAtIndex: $0)
+        }
     }
     
-    func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
-        print("cancelPrefetchingForRowsAt \(indexPaths)")
-        indexPaths.forEach { cancelImage(forItemAtIndex: $0) }
+// No need for cancelPrefetchingForRowsAt since changing search cancels pending operations and prefetchRowsAt populates a cache
+}
+
+// MARK: - ImageCache
+class ImageCache: NSCache<AnyObject, AnyObject> {
+    func setImage(_ image: UIImage, forKey: String) {
+        let cacheKey:NSString = forKey as NSString //NSCache won't take String, so casting to NSString
+        setObject(image, forKey: cacheKey)
+    }
+
+    func image(forKey: String) -> UIImage? {
+        let cacheKey:NSString = forKey as NSString //NSCache won't take String, so casting to NSString
+        return object(forKey: cacheKey) as? UIImage
     }
 }

@@ -13,20 +13,12 @@ class ImageGenerator: Operation{
     let initials: String
     var image: UIImage?
     
-    init(initials: String){
+    init(initials: String) {
         self.initials = initials
     }
     
     override func main() {
-        if self.isCancelled {
-            print("Cancelled")
-            return
-        }
-        
-//        do {
-            self.image = UIImage.image(withInitials: initials)
-//        } catch {
-//            print(error)
-//        }
+        if isCancelled { print("Cancelled"); return }
+        image = UIImage.image(withInitials: initials)
     }
 }
