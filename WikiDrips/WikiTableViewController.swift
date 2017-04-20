@@ -35,6 +35,7 @@ class WikiTableViewController: UITableViewController {
     
     // MARK: - Searching
     
+    fileprivate var wikiRequests = [URLSessionTask]()
     fileprivate var wikiDocs = [[WikiDoc]]()
     
     fileprivate func search(for searchText: String?) {
@@ -42,8 +43,22 @@ class WikiTableViewController: UITableViewController {
             let wikiRequest = WikiRequest(searchText: searchText) else {
                 return
         }
-        
-        wikiRequest.fetchWikiDocs { [weak self] newDocs in
+        clearPendingRequests()
+        if let request = setCompletionBlock(for: wikiRequest) {
+            wikiRequests.append(request)
+            request.resume()
+        }
+    }
+    
+    fileprivate func clearPendingRequests() {
+        for (index, request) in wikiRequests.enumerated() {
+            request.cancel()
+            wikiRequests.remove(at: index)
+        }
+    }
+    
+    fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) -> URLSessionDataTask? {
+        let task = wikiRequest.fetchWikiDocs { [weak self] newDocs in
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if newDocs.count > 0 {
@@ -53,6 +68,7 @@ class WikiTableViewController: UITableViewController {
                 }
             }
         }
+        return task
     }
     
     // MARK: - Image handling
