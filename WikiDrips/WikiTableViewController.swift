@@ -116,6 +116,21 @@ class WikiTableViewController: UITableViewController {
         return (0..<wikiDocs.count).contains(indexPath.section) && (0..<wikiDocs[indexPath.section].count).contains(indexPath.row)
     }
     
+    // MARK: - Segue to document view
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let identifier = segue.identifier {
+            switch identifier {
+                case "Show Document":
+                    guard let sender = sender as? WikiTableViewCell else { break }
+                    if let viewController = segue.destination as? WikiDocViewController {
+                        viewController.searchText = sender.wikiTitleLabel?.text
+                    }
+                default: break
+            }
+        }
+    }
+    
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {

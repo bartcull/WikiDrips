@@ -62,6 +62,7 @@
                                     <outlet property="wikiDateLabel" destination="iw9-u7-B4m" id="pGB-t1-HDL"/>
                                     <outlet property="wikiTitleImageView" destination="ZIH-lW-ltS" id="qgP-bV-MH6"/>
                                     <outlet property="wikiTitleLabel" destination="cpC-La-KFN" id="cEF-Ff-C7M"/>
+                                    <segue destination="is1-FO-eCj" kind="show" identifier="Show Document" id="ZGR-Q0-g2X"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -76,6 +77,24 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="m1a-SH-GKc" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1800.8" y="215.44227886056973"/>
+        </scene>
+        <!--Wiki Doc View Controller-->
+        <scene sceneID="Ayw-CI-A0B">
+            <objects>
+                <viewController id="is1-FO-eCj" customClass="WikiDocViewController" customModule="WikiDrips" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="cbM-Mz-glI"/>
+                        <viewControllerLayoutGuide type="bottom" id="cFI-4J-E5G"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="i1R-5e-EMC">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="gpM-gS-RVA" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2626" y="215"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="abD-Kx-7dI">
