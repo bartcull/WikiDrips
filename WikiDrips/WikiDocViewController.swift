@@ -41,8 +41,8 @@ class WikiDocViewController: UIViewController, WKUIDelegate {
             print("Error: cannot create document URL")
             return nil
         }
-        
-        return URLRequest(url: url)
+        // TODO: Add caching. Apparently WKWebViews don't support URLRequest cachePolicy
+        return URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
     }
 
 

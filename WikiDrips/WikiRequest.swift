@@ -84,6 +84,6 @@ public class WikiRequest
             return nil
         }
 
-        return URLRequest(url: url)
+        return URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
     }
 }
