@@ -35,29 +35,32 @@ class WikiTableViewController: UITableViewController {
     
     // MARK: - Searching
     
+    fileprivate var searchText: String?
     fileprivate var semaphore: Timer?
     fileprivate let timerInterval: TimeInterval = 0.4
     fileprivate var wikiRequests = [URLSessionTask]()
     fileprivate var wikiDocs = [[WikiDoc]]()
-    
-    fileprivate func search(for searchText: String) {
+
+    fileprivate func search() {
         if let semaphore = semaphore, semaphore.isValid {
-            return
-        } else {
-            createSemaphore()
+            semaphore.invalidate()
         }
-        guard let wikiRequest = WikiRequest(searchText: searchText) else { return }
+        createSemaphore()
+    }
+    
+    fileprivate func createSemaphore() {
+        semaphore = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: false, block: { [weak self] _ in
+            self?.createSearchRequest()
+        })
+    }
+    
+    fileprivate func createSearchRequest() {
+        guard let searchText = searchText, let wikiRequest = WikiRequest(searchText: searchText) else { return }
         clearPendingRequests()
         if let request = setCompletionBlock(for: wikiRequest) {
             wikiRequests.append(request)
             request.resume()
         }
-    }
-    
-    fileprivate func createSemaphore() {
-        semaphore = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: false, block: { [weak self] timer in
-            self?.semaphore?.invalidate()
-        })
     }
     
     fileprivate func clearPendingRequests() {
@@ -171,8 +174,10 @@ class WikiTableViewController: UITableViewController {
 // MARK: - UISearchResultsUpdating
 extension WikiTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for: UISearchController) {
-        guard let searchText = searchController.searchBar.text, searchText.characters.count > 2 else { return }
-        search(for: searchText)
+        if let text = searchController.searchBar.text, text.characters.count > 2 {
+            searchText = text
+            search()
+        }
     }
 }
 
