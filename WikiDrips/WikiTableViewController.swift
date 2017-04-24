@@ -35,19 +35,29 @@ class WikiTableViewController: UITableViewController {
     
     // MARK: - Searching
     
+    fileprivate var semaphore: Timer?
+    fileprivate let timerInterval: TimeInterval = 0.4
     fileprivate var wikiRequests = [URLSessionTask]()
     fileprivate var wikiDocs = [[WikiDoc]]()
     
-    fileprivate func search(for searchText: String?) {
-        guard let searchText = searchText,
-            let wikiRequest = WikiRequest(searchText: searchText) else {
-                return
+    fileprivate func search(for searchText: String) {
+        if let semaphore = semaphore, semaphore.isValid {
+            return
+        } else {
+            createSemaphore()
         }
+        guard let wikiRequest = WikiRequest(searchText: searchText) else { return }
         clearPendingRequests()
         if let request = setCompletionBlock(for: wikiRequest) {
             wikiRequests.append(request)
             request.resume()
         }
+    }
+    
+    fileprivate func createSemaphore() {
+        semaphore = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: false, block: { [weak self] timer in
+            self?.semaphore?.invalidate()
+        })
     }
     
     fileprivate func clearPendingRequests() {
