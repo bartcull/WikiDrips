@@ -178,6 +178,7 @@ extension WikiTableViewController: UISearchResultsUpdating {
         guard let text = searchController.searchBar.text else { return }
         
         if text.isEmpty {
+            clearPendingRequests()
             wikiDocs = [[WikiDoc]]()
             tableView.reloadData()
         } else {
