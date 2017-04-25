@@ -12,7 +12,7 @@ import WebKit
 class WikiDocViewController: UIViewController, WKUIDelegate {
 
     private var webView: WKWebView?
-    public var searchText: String?
+    var searchText: String?
 
     // MARK: - View Controller Lifecycle
     
@@ -44,7 +44,7 @@ class WikiDocViewController: UIViewController, WKUIDelegate {
             return nil
         }
         
-        return URLRequest(url: url, cachePolicy: .useProtocolCachePolicy)
+        return URLRequest(url: url)
     }
 
 

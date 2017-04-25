@@ -123,8 +123,14 @@ class WikiTableViewController: UITableViewController {
             switch identifier {
                 case "Show Document":
                     guard let sender = sender as? WikiTableViewCell else { break }
+                    guard let indexPath = tableView.indexPath(for: sender),
+                        safeIndexPath(indexPath: indexPath)
+                        else { print("Error with indexpath"); break }
+                    
+                    let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
+                    
                     if let viewController = segue.destination as? WikiDocViewController {
-                        viewController.searchText = sender.wikiDoc?.title
+                        viewController.searchText = wikiDoc.title
                     }
                 default: break
             }
@@ -148,7 +154,6 @@ class WikiTableViewController: UITableViewController {
         }
         
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
-        wikiCell.wikiDoc = wikiDoc
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")
