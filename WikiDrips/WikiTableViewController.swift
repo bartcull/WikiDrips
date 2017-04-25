@@ -124,7 +124,7 @@ class WikiTableViewController: UITableViewController {
                 case "Show Document":
                     guard let sender = sender as? WikiTableViewCell else { break }
                     if let viewController = segue.destination as? WikiDocViewController {
-                        viewController.searchText = sender.wikiTitleLabel?.text
+                        viewController.searchText = sender.wikiDoc?.title
                     }
                 default: break
             }
@@ -148,6 +148,7 @@ class WikiTableViewController: UITableViewController {
         }
         
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
+        wikiCell.wikiDoc = wikiDoc
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")

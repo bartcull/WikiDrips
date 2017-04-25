@@ -11,8 +11,8 @@ import WebKit
 
 class WikiDocViewController: UIViewController, WKUIDelegate {
 
-    var webView: WKWebView?
-    var searchText: String?
+    private var webView: WKWebView?
+    public var searchText: String?
 
     // MARK: - View Controller Lifecycle
     
@@ -22,8 +22,10 @@ class WikiDocViewController: UIViewController, WKUIDelegate {
         webView?.uiDelegate = self
         view = webView
     }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         if let searchText = searchText, let request = docRequest(title: searchText) {
             webView?.load(request)
         }
@@ -41,8 +43,8 @@ class WikiDocViewController: UIViewController, WKUIDelegate {
             print("Error: cannot create document URL")
             return nil
         }
-        // TODO: Add caching. Apparently WKWebViews don't support URLRequest cachePolicy
-        return URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+        
+        return URLRequest(url: url, cachePolicy: .useProtocolCachePolicy)
     }
 
 
