@@ -52,6 +52,7 @@ class WikiTableViewController: UITableViewController {
         semaphore = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: false, block: { [weak self] _ in
             self?.createSearchRequest()
         })
+        semaphore?.tolerance = timerInterval * 0.2
     }
     
     fileprivate func createSearchRequest() {
@@ -174,7 +175,12 @@ class WikiTableViewController: UITableViewController {
 // MARK: - UISearchResultsUpdating
 extension WikiTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for: UISearchController) {
-        if let text = searchController.searchBar.text, text.characters.count > 2 {
+        guard let text = searchController.searchBar.text else { return }
+        
+        if text.isEmpty {
+            wikiDocs = [[WikiDoc]]()
+            tableView.reloadData()
+        } else {
             searchText = text
             search()
         }
