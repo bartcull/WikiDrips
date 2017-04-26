@@ -60,6 +60,10 @@ class WikiDocViewController: UIViewController, WKUIDelegate {
 }
 
 extension WikiDocViewController: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        activityIndicator.stopAnimating()
+    }
+    
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         activityIndicator.stopAnimating()
     }
