@@ -35,26 +35,18 @@ class WikiTableViewController: UITableViewController {
     
     // MARK: - Searching
     
-    fileprivate var wikiRequests = [URLSessionTask]()
+    fileprivate var latestWikiRequest: URLSessionDataTask?
     fileprivate var wikiDocs = [[WikiDoc]]()
     
     fileprivate func search(for searchText: String?) {
+        latestWikiRequest?.cancel()
         guard let searchText = searchText,
             let wikiRequest = WikiRequest(searchText: searchText) else {
                 return
         }
-        clearPendingRequests()
-        if let request = setCompletionBlock(for: wikiRequest) {
-            wikiRequests.append(request)
-            request.resume()
-        }
-    }
-    
-    fileprivate func clearPendingRequests() {
-        for (index, request) in wikiRequests.enumerated() {
-            request.cancel()
-            wikiRequests.remove(at: index)
-        }
+        guard let request = setCompletionBlock(for: wikiRequest) else { return }
+        latestWikiRequest = request
+        request.resume()
     }
     
     fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) -> URLSessionDataTask? {
@@ -162,9 +154,9 @@ extension WikiTableViewController: UITableViewDataSourcePrefetching {
 }
 
 // MARK: - ImageCache
-class ImageCache: NSCache<AnyObject, AnyObject> {
+class ImageCache: NSCache<NSString, AnyObject> {
     func setImage(_ image: UIImage, forKey: String) {
-        let cacheKey:NSString = forKey as NSString //NSCache won't take String, so casting to NSString
+        let cacheKey = forKey as NSString //NSCache won't take String, so casting to NSString
         setObject(image, forKey: cacheKey)
     }
 
