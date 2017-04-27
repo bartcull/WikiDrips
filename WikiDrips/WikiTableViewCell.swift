@@ -13,5 +13,4 @@ class WikiTableViewCell: UITableViewCell {
     @IBOutlet weak var wikiTitleImageView: UIImageView?
     @IBOutlet weak var wikiTitleLabel: UILabel?
     @IBOutlet weak var wikiDateLabel: UILabel?
-
 }
