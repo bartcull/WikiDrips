@@ -17,7 +17,7 @@ public class WikiRequest
         self.searchText = searchText
     }
     
-    public func fetchWikiDocs(handler: @escaping ([WikiDoc]) -> Void) -> URLSessionDataTask? {
+    public func fetchWikiDocs(successHandler: @escaping ([WikiDoc]) -> Void) -> URLSessionDataTask? {
         guard let urlRequest = urlRequest(searchText: searchText) else {
             return nil
         }
@@ -59,7 +59,7 @@ public class WikiRequest
                     return WikiDoc(title: title, date: date, image: nil)
                 }
                 
-                handler(wikiDocs)
+                successHandler(wikiDocs)
             }
         }
         return task
