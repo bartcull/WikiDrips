@@ -19,6 +19,6 @@ class ImageGenerator: Operation{
     
     override func main() {
         if isCancelled { print("Cancelled"); return }
-        image = UIImage.image(withInitials: initials)
+        image = UIImage.image(withInitials: initials, size: CGSize(width:32, height:32))
     }
 }
