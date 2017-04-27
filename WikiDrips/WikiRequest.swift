@@ -17,9 +17,9 @@ public class WikiRequest
         self.searchText = searchText
     }
     
-    public func fetchWikiDocs(handler: @escaping ([WikiDoc]) -> Void) {
+    public func fetchWikiDocs(successHandler: @escaping ([WikiDoc]) -> Void) -> URLSessionDataTask? {
         guard let urlRequest = urlRequest(searchText: searchText) else {
-            return
+            return nil
         }
         let task = session.dataTask(with: urlRequest) {
             (data, response, error) in
@@ -56,13 +56,13 @@ public class WikiRequest
                         let date = isoDateFormatter.date(from: isoDate) else {
                         return nil
                     }
-                    return WikiDoc(title: title, date: date)
+                    return WikiDoc(title: title, date: date, image: nil)
                 }
                 
-                handler(wikiDocs)
+                successHandler(wikiDocs)
             }
         }
-        task.resume()
+        return task
     }
     
     private func urlRequest(searchText: String, offset: Int = 0) -> URLRequest? {
