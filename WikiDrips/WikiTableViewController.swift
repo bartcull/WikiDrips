@@ -130,18 +130,18 @@ class WikiTableViewController: UITableViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let identifier = segue.identifier {
             switch identifier {
-            case "Show Document":
-                guard let sender = sender as? WikiTableViewCell else { break }
-                guard let indexPath = tableView.indexPath(for: sender),
-                    safeIndexPath(indexPath: indexPath)
-                    else { print("Error with indexpath"); break }
-                
-                let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
-                
-                if let viewController = segue.destination as? WikiDocViewController {
-                    viewController.searchText = wikiDoc.title
-                }
-            default: break
+                case "Show Document":
+                    guard let sender = sender as? WikiTableViewCell else { break }
+                    guard let indexPath = tableView.indexPath(for: sender),
+                        safeIndexPath(indexPath: indexPath)
+                        else { print("Error with indexpath"); break }
+                    
+                    let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
+                    
+                    if let viewController = segue.destination as? WikiDocViewController {
+                        viewController.searchText = wikiDoc.title
+                    }
+                default: break
             }
         }
     }

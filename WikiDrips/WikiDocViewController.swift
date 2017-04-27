@@ -11,16 +11,25 @@ import WebKit
 
 class WikiDocViewController: UIViewController, WKUIDelegate {
 
+    fileprivate var activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
     private var webView: WKWebView?
-    public var searchText: String?
+    var searchText: String?
 
     // MARK: - View Controller Lifecycle
     
     override func loadView() {
-        let webConfiguration = WKWebViewConfiguration()
-        webView = WKWebView(frame: .zero, configuration: webConfiguration)
+        super.loadView()
+        
+        webView = WKWebView(frame: view.frame, configuration: WKWebViewConfiguration())
         webView?.uiDelegate = self
-        view = webView
+        webView?.navigationDelegate = self
+        if let webview = webView {
+            view.addSubview(webview)
+        }
+        
+        activityIndicator.center = view.center
+        activityIndicator.startAnimating()
+        view.addSubview(activityIndicator)
     }
 
     override func viewDidLoad() {
@@ -44,8 +53,23 @@ class WikiDocViewController: UIViewController, WKUIDelegate {
             return nil
         }
         
-        return URLRequest(url: url, cachePolicy: .useProtocolCachePolicy)
+        return URLRequest(url: url)
     }
 
 
+}
+
+extension WikiDocViewController: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        activityIndicator.stopAnimating()
+    }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        activityIndicator.stopAnimating()
+    }
+    
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        print("Log an error for didFail")
+        activityIndicator.stopAnimating()
+    }
 }
