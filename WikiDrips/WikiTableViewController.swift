@@ -38,9 +38,9 @@ class WikiTableViewController: UITableViewController {
     fileprivate var searchText: String?
     fileprivate var semaphore: Timer?
     fileprivate let timerInterval: TimeInterval = 0.4
-    fileprivate var wikiRequests = [URLSessionTask]()
+    fileprivate var latestWikiRequest: URLSessionDataTask?
     fileprivate var wikiDocs = [[WikiDoc]]()
-
+    
     fileprivate func search() {
         if let semaphore = semaphore, semaphore.isValid {
             semaphore.invalidate()
@@ -56,19 +56,14 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func createSearchRequest() {
-        guard let searchText = searchText, let wikiRequest = WikiRequest(searchText: searchText) else { return }
-        clearPendingRequests()
-        if let request = setCompletionBlock(for: wikiRequest) {
-            wikiRequests.append(request)
-            request.resume()
+        latestWikiRequest?.cancel()
+        guard let searchText = searchText,
+            let wikiRequest = WikiRequest(searchText: searchText) else {
+                return
         }
-    }
-    
-    fileprivate func clearPendingRequests() {
-        for (index, request) in wikiRequests.enumerated() {
-            request.cancel()
-            wikiRequests.remove(at: index)
-        }
+        guard let request = setCompletionBlock(for: wikiRequest) else { return }
+        latestWikiRequest = request
+        request.resume()
     }
     
     fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) -> URLSessionDataTask? {
@@ -135,12 +130,18 @@ class WikiTableViewController: UITableViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let identifier = segue.identifier {
             switch identifier {
-                case "Show Document":
-                    guard let sender = sender as? WikiTableViewCell else { break }
-                    if let viewController = segue.destination as? WikiDocViewController {
-                        viewController.searchText = sender.wikiDoc?.title
-                    }
-                default: break
+            case "Show Document":
+                guard let sender = sender as? WikiTableViewCell else { break }
+                guard let indexPath = tableView.indexPath(for: sender),
+                    safeIndexPath(indexPath: indexPath)
+                    else { print("Error with indexpath"); break }
+                
+                let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
+                
+                if let viewController = segue.destination as? WikiDocViewController {
+                    viewController.searchText = wikiDoc.title
+                }
+            default: break
             }
         }
     }
@@ -162,7 +163,6 @@ class WikiTableViewController: UITableViewController {
         }
         
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
-        wikiCell.wikiDoc = wikiDoc
         wikiCell.wikiTitleLabel?.text = wikiDoc.title
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")
@@ -178,7 +178,7 @@ extension WikiTableViewController: UISearchResultsUpdating {
         guard let text = searchController.searchBar.text else { return }
         
         if text.isEmpty {
-            clearPendingRequests()
+            latestWikiRequest?.cancel()
             wikiDocs = [[WikiDoc]]()
             tableView.reloadData()
         } else {
@@ -196,16 +196,16 @@ extension WikiTableViewController: UITableViewDataSourcePrefetching {
         }
     }
     
-// No need for cancelPrefetchingForRowsAt since changing search cancels pending operations and prefetchRowsAt populates a cache
+    // No need for cancelPrefetchingForRowsAt since changing search cancels pending operations and prefetchRowsAt populates a cache
 }
 
 // MARK: - ImageCache
-class ImageCache: NSCache<AnyObject, AnyObject> {
+class ImageCache: NSCache<NSString, AnyObject> {
     func setImage(_ image: UIImage, forKey: String) {
-        let cacheKey:NSString = forKey as NSString //NSCache won't take String, so casting to NSString
+        let cacheKey = forKey as NSString //NSCache won't take String, so casting to NSString
         setObject(image, forKey: cacheKey)
     }
-
+    
     func image(forKey: String) -> UIImage? {
         let cacheKey:NSString = forKey as NSString //NSCache won't take String, so casting to NSString
         return object(forKey: cacheKey) as? UIImage
