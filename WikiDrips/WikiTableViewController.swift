@@ -35,10 +35,27 @@ class WikiTableViewController: UITableViewController {
     
     // MARK: - Searching
     
+    fileprivate var searchText: String?
+    fileprivate var semaphore: Timer?
+    fileprivate let timerInterval: TimeInterval = 0.4
     fileprivate var latestWikiRequest: URLSessionDataTask?
     fileprivate var wikiDocs = [[WikiDoc]]()
     
-    fileprivate func search(for searchText: String?) {
+    fileprivate func search() {
+        if let semaphore = semaphore, semaphore.isValid {
+            semaphore.invalidate()
+        }
+        createSemaphore()
+    }
+    
+    fileprivate func createSemaphore() {
+        semaphore = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: false, block: { [weak self] _ in
+            self?.createSearchRequest()
+        })
+        semaphore?.tolerance = timerInterval * 0.2
+    }
+    
+    fileprivate func createSearchRequest() {
         latestWikiRequest?.cancel()
         guard let searchText = searchText,
             let wikiRequest = WikiRequest(searchText: searchText) else {
@@ -158,8 +175,16 @@ class WikiTableViewController: UITableViewController {
 // MARK: - UISearchResultsUpdating
 extension WikiTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for: UISearchController) {
-        guard let searchText = searchController.searchBar.text, searchText.characters.count > 2 else { return }
-        search(for: searchText)
+        guard let text = searchController.searchBar.text else { return }
+        
+        if text.isEmpty {
+            latestWikiRequest?.cancel()
+            wikiDocs = [[WikiDoc]]()
+            tableView.reloadData()
+        } else {
+            searchText = text
+            search()
+        }
     }
 }
 
@@ -171,7 +196,7 @@ extension WikiTableViewController: UITableViewDataSourcePrefetching {
         }
     }
     
-// No need for cancelPrefetchingForRowsAt since changing search cancels pending operations and prefetchRowsAt populates a cache
+    // No need for cancelPrefetchingForRowsAt since changing search cancels pending operations and prefetchRowsAt populates a cache
 }
 
 // MARK: - ImageCache
@@ -180,7 +205,7 @@ class ImageCache: NSCache<NSString, AnyObject> {
         let cacheKey = forKey as NSString //NSCache won't take String, so casting to NSString
         setObject(image, forKey: cacheKey)
     }
-
+    
     func image(forKey: String) -> UIImage? {
         let cacheKey:NSString = forKey as NSString //NSCache won't take String, so casting to NSString
         return object(forKey: cacheKey) as? UIImage
