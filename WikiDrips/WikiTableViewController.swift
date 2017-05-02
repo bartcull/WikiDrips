@@ -71,7 +71,7 @@ class WikiTableViewController: UITableViewController {
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if newDocs.count > 0 {
-                    strongSelf.imageTasks.cancelAllOperations() // Clears the OperationQueue with consecutive searches
+                    strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
                     strongSelf.wikiDocs = [newDocs]
                     strongSelf.tableView.reloadData()
                 }
@@ -83,6 +83,12 @@ class WikiTableViewController: UITableViewController {
     // MARK: - Image handling
     
     fileprivate let imageTasks = OperationQueue()
+    fileprivate var pendingImageTasks = [IndexPath: ImageGenerator]()
+    
+    fileprivate func clearPendingImageTasks() {
+        imageTasks.cancelAllOperations()
+        pendingImageTasks = [:]
+    }
     
     fileprivate func checkImage(forItemAtIndex indexPath: IndexPath) {
         guard safeIndexPath(indexPath: indexPath) else { print("unsafe indexpath"); return }
@@ -101,10 +107,12 @@ class WikiTableViewController: UITableViewController {
     
     fileprivate func generateImage(forItemAtIndex indexPath: IndexPath, withInitials initials: String) {
         let generator = ImageGenerator(initials: initials)
+        pendingImageTasks[indexPath] = generator
         imageTasks.addOperation(generator)
         
         generator.completionBlock = {
             OperationQueue.main.addOperation { [weak self] in
+                self?.pendingImageTasks[indexPath] = nil
                 if generator.isCancelled {
                     print("Cancelled in completion block")
                     return
@@ -179,6 +187,7 @@ extension WikiTableViewController: UISearchResultsUpdating {
         
         if text.isEmpty {
             latestWikiRequest?.cancel()
+            clearPendingImageTasks()
             wikiDocs = [[WikiDoc]]()
             tableView.reloadData()
         } else {
@@ -196,7 +205,12 @@ extension WikiTableViewController: UITableViewDataSourcePrefetching {
         }
     }
     
-    // No need for cancelPrefetchingForRowsAt since changing search cancels pending operations and prefetchRowsAt populates a cache
+    func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
+        indexPaths.forEach {
+            pendingImageTasks[$0]?.cancel()
+            pendingImageTasks[$0] = nil
+        }
+    }
 }
 
 // MARK: - ImageCache

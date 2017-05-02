@@ -12,6 +12,7 @@ public class WikiRequest
 {
     let session = URLSession.shared
     let searchText: String
+    let searchLimit = "50"
     
     init?(searchText: String) {
         self.searchText = searchText
@@ -74,6 +75,7 @@ public class WikiRequest
             URLQueryItem(name: "action", value: "query"),
             URLQueryItem(name: "list", value: "search"),
             URLQueryItem(name: "srwhat", value: "text"),
+            URLQueryItem(name: "srlimit", value: searchLimit),
             URLQueryItem(name: "sroffset", value: "\(offset)"),
             URLQueryItem(name: "srsearch", value: searchText),
             URLQueryItem(name: "format", value: "json")
