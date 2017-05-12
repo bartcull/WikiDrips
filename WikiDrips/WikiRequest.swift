@@ -10,22 +10,34 @@ import Foundation
 
 public class WikiRequest
 {
+    static let searchLimit = 100
+    
     let session = URLSession.shared
     let searchText: String
-    let searchLimit = "50"
+    let offset: Int
+    var task: URLSessionDataTask?
+    var isCancelled = false
     
-    init?(searchText: String) {
+    init?(searchText: String, pageIndex: Int = 0) {
         self.searchText = searchText
+        self.offset = (pageIndex * WikiRequest.searchLimit)
     }
     
-    public func fetchWikiDocs(successHandler: @escaping ([WikiDoc]) -> Void) -> URLSessionDataTask? {
+    public func fetchWikiDocs(successHandler: @escaping ([WikiDoc]) -> Void) {
         guard let urlRequest = urlRequest(searchText: searchText) else {
-            return nil
+            return
         }
-        let task = session.dataTask(with: urlRequest) {
+        task = session.dataTask(with: urlRequest) {
             (data, response, error) in
+            // make sure request wasn't cancelled
+            guard self.isCancelled == false else { return }
+            
             // check for any errors
             guard error == nil else {
+                if let error = error as NSError?, error.code == NSURLErrorCancelled {
+                    self.isCancelled = true
+                    return
+                }
                 print("error calling GET on \(urlRequest)")
                 print(error!)
                 return
@@ -63,10 +75,14 @@ public class WikiRequest
                 successHandler(wikiDocs)
             }
         }
-        return task
     }
     
-    private func urlRequest(searchText: String, offset: Int = 0) -> URLRequest? {
+    public func cancel() {
+        task?.cancel()
+        isCancelled = true
+    }
+    
+    private func urlRequest(searchText: String) -> URLRequest? {
         var endpoint = URLComponents()
         endpoint.scheme = "http"
         endpoint.host = "en.wikipedia.org"
@@ -75,7 +91,7 @@ public class WikiRequest
             URLQueryItem(name: "action", value: "query"),
             URLQueryItem(name: "list", value: "search"),
             URLQueryItem(name: "srwhat", value: "text"),
-            URLQueryItem(name: "srlimit", value: searchLimit),
+            URLQueryItem(name: "srlimit", value: "\(WikiRequest.searchLimit)"),
             URLQueryItem(name: "sroffset", value: "\(offset)"),
             URLQueryItem(name: "srsearch", value: searchText),
             URLQueryItem(name: "format", value: "json")

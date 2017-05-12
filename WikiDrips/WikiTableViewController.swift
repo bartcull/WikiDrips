@@ -38,14 +38,28 @@ class WikiTableViewController: UITableViewController {
     fileprivate var searchText: String?
     fileprivate var semaphore: Timer?
     fileprivate let timerInterval: TimeInterval = 0.4
-    fileprivate var latestWikiRequest: URLSessionDataTask?
+    fileprivate var latestWikiRequest: WikiRequest?
     fileprivate var wikiDocs = [[WikiDoc]]()
+    fileprivate var pageIndex = 0
+    fileprivate var pendingSearch = false
     
     fileprivate func search() {
         if let semaphore = semaphore, semaphore.isValid {
             semaphore.invalidate()
         }
         createSemaphore()
+    }
+    
+    fileprivate func shouldGetNextPage(indexPath: IndexPath) -> Bool {
+        guard !pendingSearch else { return false }
+        
+        let docCount = wikiDocs[indexPath.section].count
+        let expectedDocCount = WikiRequest.searchLimit * (1 + pageIndex)
+        // we've reached the end if docCount is lower than expected
+        guard expectedDocCount == docCount else { return false }
+        
+        let threshhold = docCount - (WikiRequest.searchLimit / 2)
+        return (indexPath.row >= threshhold)
     }
     
     fileprivate func createSemaphore() {
@@ -58,26 +72,36 @@ class WikiTableViewController: UITableViewController {
     fileprivate func createSearchRequest() {
         latestWikiRequest?.cancel()
         guard let searchText = searchText,
-            let wikiRequest = WikiRequest(searchText: searchText) else {
-                return
-        }
-        guard let request = setCompletionBlock(for: wikiRequest) else { return }
-        latestWikiRequest = request
-        request.resume()
+            !searchText.isEmpty,
+            let wikiRequest = WikiRequest(searchText: searchText, pageIndex: pageIndex)
+            else { return }
+        latestWikiRequest = wikiRequest
+        pendingSearch = true
+        setCompletionBlock(for: wikiRequest)
+        wikiRequest.task?.resume()
     }
     
-    fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) -> URLSessionDataTask? {
-        let task = wikiRequest.fetchWikiDocs { [weak self] newDocs in
+    fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) {
+        let isFirstResult = (wikiRequest.offset == 0)
+        wikiRequest.fetchWikiDocs { [weak self] newDocs in
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
+                if wikiRequest.isCancelled {
+                    print("Cancelled in search completion block")
+                    return
+                }
                 if newDocs.count > 0 {
                     strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
-                    strongSelf.wikiDocs = [newDocs]
+                    strongSelf.pendingSearch = false
+                    if isFirstResult {
+                        strongSelf.wikiDocs = [newDocs]
+                    } else {
+                        strongSelf.wikiDocs[0] += (newDocs)
+                    }
                     strongSelf.tableView.reloadData()
                 }
             }
         }
-        return task
     }
     
     // MARK: - Image handling
@@ -184,16 +208,13 @@ class WikiTableViewController: UITableViewController {
 extension WikiTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for: UISearchController) {
         guard let text = searchController.searchBar.text else { return }
-        
-        if text.isEmpty {
-            latestWikiRequest?.cancel()
-            clearPendingImageTasks()
-            wikiDocs = [[WikiDoc]]()
-            tableView.reloadData()
-        } else {
-            searchText = text
-            search()
-        }
+        pageIndex = 0
+        wikiDocs = [[WikiDoc]]()
+        clearPendingImageTasks()
+        latestWikiRequest?.cancel()
+        tableView.reloadData()
+        searchText = text
+        search()
     }
 }
 
@@ -202,6 +223,11 @@ extension WikiTableViewController: UITableViewDataSourcePrefetching {
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
         indexPaths.forEach {
             checkImage(forItemAtIndex: $0)
+            if shouldGetNextPage(indexPath: $0) {
+                pendingSearch = true
+                pageIndex += 1
+                search()
+            }
         }
     }
     
