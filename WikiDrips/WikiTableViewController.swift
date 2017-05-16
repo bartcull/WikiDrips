@@ -24,6 +24,7 @@ class WikiTableViewController: UITableViewController {
         searchController.searchResultsUpdater = self
         searchController.dimsBackgroundDuringPresentation = false
         definesPresentationContext = true
+        searchController.searchBar.delegate = self
         tableView.tableHeaderView = searchController.searchBar
         
         tableView.estimatedRowHeight = tableView.rowHeight
@@ -215,6 +216,16 @@ extension WikiTableViewController: UISearchResultsUpdating {
         tableView.reloadData()
         searchText = text
         search()
+    }
+}
+
+// MARK: - UISearchBarDelegate
+extension WikiTableViewController: UISearchBarDelegate {
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        latestWikiRequest?.cancel()
+        latestWikiRequest = nil
+        pendingSearch = false
+        clearPendingImageTasks()
     }
 }
 
