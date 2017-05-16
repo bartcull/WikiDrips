@@ -224,7 +224,6 @@ extension WikiTableViewController: UITableViewDataSourcePrefetching {
         indexPaths.forEach {
             checkImage(forItemAtIndex: $0)
             if shouldGetNextPage(indexPath: $0) {
-                pendingSearch = true
                 pageIndex += 1
                 search()
             }
