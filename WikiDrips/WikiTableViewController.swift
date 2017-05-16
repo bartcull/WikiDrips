@@ -154,7 +154,7 @@ class WikiTableViewController: UITableViewController {
     }
     
     private func safeIndexPath(indexPath: IndexPath) -> Bool {
-        return (0..<wikiDocs.count).contains(indexPath.section) && (0..<wikiDocs[indexPath.section].count).contains(indexPath.row)
+        return (0..<wikiDocs.count) ~= indexPath.section && (0..<wikiDocs[indexPath.section].count) ~= indexPath.row
     }
     
     // MARK: - Segue to document view
