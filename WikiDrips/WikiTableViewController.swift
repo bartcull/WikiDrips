@@ -83,7 +83,6 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) {
-        let isFirstResult = (wikiRequest.offset == 0)
         wikiRequest.fetchWikiDocs { [weak self] newDocs in
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
@@ -94,17 +93,31 @@ class WikiTableViewController: UITableViewController {
                 if newDocs.count > 0 {
                     strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
                     strongSelf.pendingSearch = false
-                    if isFirstResult {
-                        strongSelf.wikiDocs = [newDocs]
-                    } else {
-                        strongSelf.wikiDocs[0] += (newDocs)
-                    }
-                    strongSelf.tableView.reloadData()
+                    strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
+                    
                 }
             }
         }
     }
     
+    fileprivate func populateRows(atOffset offset: Int, with newDocs: [WikiDoc]) {
+        if offset == 0 {
+            wikiDocs = [newDocs]
+            tableView.reloadData()
+        } else {
+            let oldCount = wikiDocs[0].count
+            tableView.beginUpdates()
+            wikiDocs[0] += (newDocs)
+            let newDocCount = wikiDocs[0].count - 1
+            var rows = [IndexPath]()
+            for index in oldCount...newDocCount {
+                rows.append(IndexPath(row: index, section: 0))
+            }
+            tableView.insertRows(at: rows, with: .automatic)
+            tableView.endUpdates()
+        }
+    }
+
     // MARK: - Image handling
     
     fileprivate let imageTasks = OperationQueue()
