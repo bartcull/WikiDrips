@@ -43,6 +43,7 @@ class WikiTableViewController: UITableViewController {
     fileprivate var wikiDocs = [[WikiDoc]]()
     fileprivate var pageIndex = 0
     fileprivate var pendingSearch = false
+    fileprivate var searchIndicatorView: UIActivityIndicatorView?
     
     fileprivate func search() {
         if let semaphore = semaphore, semaphore.isValid {
@@ -94,7 +95,6 @@ class WikiTableViewController: UITableViewController {
                     strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
                     strongSelf.pendingSearch = false
                     strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
-                    
                 }
             }
         }
@@ -108,16 +108,17 @@ class WikiTableViewController: UITableViewController {
             let oldCount = wikiDocs[0].count
             tableView.beginUpdates()
             wikiDocs[0] += (newDocs)
-            let newDocCount = wikiDocs[0].count - 1
+            let newDocCount = wikiDocs[0].count
             var rows = [IndexPath]()
-            for index in oldCount...newDocCount {
+            for index in oldCount..<newDocCount {
                 rows.append(IndexPath(row: index, section: 0))
             }
             tableView.insertRows(at: rows, with: .automatic)
             tableView.endUpdates()
         }
+        searchIndicatorView?.stopAnimating()
     }
-
+   
     // MARK: - Image handling
     
     fileprivate let imageTasks = OperationQueue()
@@ -213,6 +214,10 @@ class WikiTableViewController: UITableViewController {
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")
         checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: wikiCell.wikiTitleImageView)
+        if indexPath.row == (wikiDocs[indexPath.section].endIndex - 1) {
+            searchIndicatorView = wikiCell.searchIndicatorView
+            searchIndicatorView?.startAnimating()
+        }
         return wikiCell
     }
     
