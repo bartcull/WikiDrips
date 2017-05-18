@@ -214,11 +214,19 @@ class WikiTableViewController: UITableViewController {
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")
         checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: wikiCell.wikiTitleImageView)
-        if indexPath.row == (wikiDocs[indexPath.section].endIndex - 1) {
+        if isLastCell(indexPath) && isMultipleOfSearchLimit(row: indexPath.row) {
             searchIndicatorView = wikiCell.searchIndicatorView
             searchIndicatorView?.startAnimating()
         }
         return wikiCell
+    }
+    
+    fileprivate func isLastCell(_ indexPath: IndexPath) -> Bool {
+        return indexPath.row == (wikiDocs[indexPath.section].endIndex - 1)
+    }
+    
+    fileprivate func isMultipleOfSearchLimit(row: Int) -> Bool {
+        return 0 == ((row + 1) % WikiRequest.searchLimit)
     }
     
 }
