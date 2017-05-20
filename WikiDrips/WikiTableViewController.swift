@@ -26,7 +26,7 @@ class WikiTableViewController: UITableViewController {
         definesPresentationContext = true
         searchController.searchBar.delegate = self
         tableView.tableHeaderView = searchController.searchBar
-        
+        tableView.tableFooterView = searchIndicatorView
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
         
@@ -43,7 +43,7 @@ class WikiTableViewController: UITableViewController {
     fileprivate var wikiDocs = [[WikiDoc]]()
     fileprivate var pageIndex = 0
     fileprivate var pendingSearch = false
-    fileprivate var searchIndicatorView: UIActivityIndicatorView?
+    fileprivate let searchIndicatorView = UIActivityIndicatorView(activityIndicatorStyle: .gray)
     
     fileprivate func search() {
         if let semaphore = semaphore, semaphore.isValid {
@@ -116,7 +116,7 @@ class WikiTableViewController: UITableViewController {
             tableView.insertRows(at: rows, with: .automatic)
             tableView.endUpdates()
         }
-        searchIndicatorView?.stopAnimating()
+        searchIndicatorView.stopAnimating()
     }
    
     // MARK: - Image handling
@@ -215,8 +215,7 @@ class WikiTableViewController: UITableViewController {
         wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")
         checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: wikiCell.wikiTitleImageView)
         if isLastCell(indexPath) && isMultipleOfSearchLimit(row: indexPath.row) {
-            searchIndicatorView = wikiCell.searchIndicatorView
-            searchIndicatorView?.startAnimating()
+            searchIndicatorView.startAnimating()
         }
         return wikiCell
     }

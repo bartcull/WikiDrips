@@ -45,9 +45,6 @@
                                                 <constraint firstAttribute="height" constant="32" id="l5X-IJ-ZmH"/>
                                             </constraints>
                                         </imageView>
-                                        <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="Mcm-C7-5W5" userLabel="Call Indicator">
-                                            <rect key="frame" x="177" y="32" width="20" height="20"/>
-                                        </activityIndicatorView>
                                     </subviews>
                                     <constraints>
                                         <constraint firstAttribute="leadingMargin" secondItem="ZIH-lW-ltS" secondAttribute="leading" id="0Fe-Dw-t5I"/>
@@ -58,13 +55,10 @@
                                         <constraint firstItem="iw9-u7-B4m" firstAttribute="top" secondItem="cpC-La-KFN" secondAttribute="bottom" constant="8" id="fDX-47-nxp"/>
                                         <constraint firstAttribute="bottomMargin" secondItem="iw9-u7-B4m" secondAttribute="bottom" constant="7.5" id="hHp-Bp-8WL"/>
                                         <constraint firstAttribute="trailingMargin" secondItem="cpC-La-KFN" secondAttribute="trailing" id="hX7-xh-7yh"/>
-                                        <constraint firstItem="Mcm-C7-5W5" firstAttribute="centerX" secondItem="gF2-Th-PN7" secondAttribute="centerX" id="s19-CU-BiP"/>
                                         <constraint firstItem="cpC-La-KFN" firstAttribute="leading" secondItem="ZIH-lW-ltS" secondAttribute="trailing" constant="8" id="x2I-be-feo"/>
-                                        <constraint firstItem="Mcm-C7-5W5" firstAttribute="centerY" secondItem="gF2-Th-PN7" secondAttribute="centerY" id="yQO-T1-SVx"/>
                                     </constraints>
                                 </tableViewCellContentView>
                                 <connections>
-                                    <outlet property="searchIndicatorView" destination="Mcm-C7-5W5" id="FHe-gX-BfG"/>
                                     <outlet property="wikiDateLabel" destination="iw9-u7-B4m" id="pGB-t1-HDL"/>
                                     <outlet property="wikiTitleImageView" destination="ZIH-lW-ltS" id="qgP-bV-MH6"/>
                                     <outlet property="wikiTitleLabel" destination="cpC-La-KFN" id="cEF-Ff-C7M"/>
