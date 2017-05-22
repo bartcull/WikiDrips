@@ -24,8 +24,9 @@ class WikiTableViewController: UITableViewController {
         searchController.searchResultsUpdater = self
         searchController.dimsBackgroundDuringPresentation = false
         definesPresentationContext = true
+        searchController.searchBar.delegate = self
         tableView.tableHeaderView = searchController.searchBar
-        
+        tableView.tableFooterView = searchIndicatorView
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
         
@@ -38,14 +39,29 @@ class WikiTableViewController: UITableViewController {
     fileprivate var searchText: String?
     fileprivate var semaphore: Timer?
     fileprivate let timerInterval: TimeInterval = 0.4
-    fileprivate var latestWikiRequest: URLSessionDataTask?
+    fileprivate var latestWikiRequest: WikiRequest?
     fileprivate var wikiDocs = [[WikiDoc]]()
+    fileprivate var pageIndex = 0
+    fileprivate var pendingSearch = false
+    fileprivate let searchIndicatorView = UIActivityIndicatorView(activityIndicatorStyle: .gray)
     
     fileprivate func search() {
         if let semaphore = semaphore, semaphore.isValid {
             semaphore.invalidate()
         }
         createSemaphore()
+    }
+    
+    fileprivate func shouldGetNextPage(indexPath: IndexPath) -> Bool {
+        guard !pendingSearch else { return false }
+        
+        let docCount = wikiDocs[indexPath.section].count
+        let expectedDocCount = WikiRequest.searchLimit * (1 + pageIndex)
+        // we've reached the end if docCount is lower than expected
+        guard expectedDocCount == docCount else { return false }
+        
+        let threshhold = docCount - (WikiRequest.searchLimit / 2)
+        return (indexPath.row >= threshhold)
     }
     
     fileprivate func createSemaphore() {
@@ -58,31 +74,60 @@ class WikiTableViewController: UITableViewController {
     fileprivate func createSearchRequest() {
         latestWikiRequest?.cancel()
         guard let searchText = searchText,
-            let wikiRequest = WikiRequest(searchText: searchText) else {
-                return
-        }
-        guard let request = setCompletionBlock(for: wikiRequest) else { return }
-        latestWikiRequest = request
-        request.resume()
+            !searchText.isEmpty,
+            let wikiRequest = WikiRequest(searchText: searchText, pageIndex: pageIndex)
+            else { return }
+        latestWikiRequest = wikiRequest
+        pendingSearch = true
+        setCompletionBlock(for: wikiRequest)
+        wikiRequest.task?.resume()
     }
     
-    fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) -> URLSessionDataTask? {
-        let task = wikiRequest.fetchWikiDocs { [weak self] newDocs in
+    fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) {
+        wikiRequest.fetchWikiDocs { [weak self] newDocs in
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
+                if wikiRequest.isCancelled {
+                    print("Cancelled in search completion block")
+                    return
+                }
                 if newDocs.count > 0 {
-                    strongSelf.imageTasks.cancelAllOperations() // Clears the OperationQueue with consecutive searches
-                    strongSelf.wikiDocs = [newDocs]
-                    strongSelf.tableView.reloadData()
+                    strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
+                    strongSelf.pendingSearch = false
+                    strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
                 }
             }
         }
-        return task
     }
     
+    fileprivate func populateRows(atOffset offset: Int, with newDocs: [WikiDoc]) {
+        if offset == 0 {
+            wikiDocs = [newDocs]
+            tableView.reloadData()
+        } else {
+            let oldCount = wikiDocs[0].count
+            tableView.beginUpdates()
+            wikiDocs[0] += (newDocs)
+            let newDocCount = wikiDocs[0].count
+            var rows = [IndexPath]()
+            for index in oldCount..<newDocCount {
+                rows.append(IndexPath(row: index, section: 0))
+            }
+            tableView.insertRows(at: rows, with: .automatic)
+            tableView.endUpdates()
+        }
+        searchIndicatorView.stopAnimating()
+    }
+   
     // MARK: - Image handling
     
     fileprivate let imageTasks = OperationQueue()
+    fileprivate var pendingImageTasks = [IndexPath: ImageGenerator]()
+    
+    fileprivate func clearPendingImageTasks() {
+        imageTasks.cancelAllOperations()
+        pendingImageTasks = [:]
+    }
     
     fileprivate func checkImage(forItemAtIndex indexPath: IndexPath) {
         guard safeIndexPath(indexPath: indexPath) else { print("unsafe indexpath"); return }
@@ -101,10 +146,12 @@ class WikiTableViewController: UITableViewController {
     
     fileprivate func generateImage(forItemAtIndex indexPath: IndexPath, withInitials initials: String) {
         let generator = ImageGenerator(initials: initials)
+        pendingImageTasks[indexPath] = generator
         imageTasks.addOperation(generator)
         
         generator.completionBlock = {
             OperationQueue.main.addOperation { [weak self] in
+                self?.pendingImageTasks[indexPath] = nil
                 if generator.isCancelled {
                     print("Cancelled in completion block")
                     return
@@ -122,7 +169,7 @@ class WikiTableViewController: UITableViewController {
     }
     
     private func safeIndexPath(indexPath: IndexPath) -> Bool {
-        return (0..<wikiDocs.count).contains(indexPath.section) && (0..<wikiDocs[indexPath.section].count).contains(indexPath.row)
+        return (0..<wikiDocs.count) ~= indexPath.section && (0..<wikiDocs[indexPath.section].count) ~= indexPath.row
     }
     
     // MARK: - Segue to document view
@@ -167,7 +214,18 @@ class WikiTableViewController: UITableViewController {
         wikiCell.wikiDateLabel?.text = dateFormatter.string(from: wikiDoc.date)
         wikiCell.wikiTitleImageView?.image = #imageLiteral(resourceName: "PlaceHolderImage")
         checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: wikiCell.wikiTitleImageView)
+        if isLastCell(indexPath) && isMultipleOfSearchLimit(row: indexPath.row) {
+            searchIndicatorView.startAnimating()
+        }
         return wikiCell
+    }
+    
+    fileprivate func isLastCell(_ indexPath: IndexPath) -> Bool {
+        return indexPath.row == (wikiDocs[indexPath.section].endIndex - 1)
+    }
+    
+    fileprivate func isMultipleOfSearchLimit(row: Int) -> Bool {
+        return 0 == ((row + 1) % WikiRequest.searchLimit)
     }
     
 }
@@ -176,15 +234,23 @@ class WikiTableViewController: UITableViewController {
 extension WikiTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for: UISearchController) {
         guard let text = searchController.searchBar.text else { return }
-        
-        if text.isEmpty {
-            latestWikiRequest?.cancel()
-            wikiDocs = [[WikiDoc]]()
-            tableView.reloadData()
-        } else {
-            searchText = text
-            search()
-        }
+        pageIndex = 0
+        wikiDocs = [[WikiDoc]]()
+        clearPendingImageTasks()
+        latestWikiRequest?.cancel()
+        tableView.reloadData()
+        searchText = text
+        search()
+    }
+}
+
+// MARK: - UISearchBarDelegate
+extension WikiTableViewController: UISearchBarDelegate {
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        latestWikiRequest?.cancel()
+        latestWikiRequest = nil
+        pendingSearch = false
+        clearPendingImageTasks()
     }
 }
 
@@ -193,10 +259,19 @@ extension WikiTableViewController: UITableViewDataSourcePrefetching {
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
         indexPaths.forEach {
             checkImage(forItemAtIndex: $0)
+            if shouldGetNextPage(indexPath: $0) {
+                pageIndex += 1
+                search()
+            }
         }
     }
     
-    // No need for cancelPrefetchingForRowsAt since changing search cancels pending operations and prefetchRowsAt populates a cache
+    func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
+        indexPaths.forEach {
+            pendingImageTasks[$0]?.cancel()
+            pendingImageTasks[$0] = nil
+        }
+    }
 }
 
 // MARK: - ImageCache
