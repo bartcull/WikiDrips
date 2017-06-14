@@ -9,6 +9,10 @@
 import UIKit
 import os.log
 
+enum WikiErrors: Error {
+    case networkError(String)
+}
+
 class WikiTableViewController: UITableViewController {
 
     static let wtvc_log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiTableViewController")
@@ -86,17 +90,19 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) {
-        wikiRequest.fetchWikiDocs { [weak self] newDocs in
+        wikiRequest.fetchWikiDocs { [weak self] newDocs, error in
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if wikiRequest.isCancelled {
-                    os_log("Cancelled in search completion block", log: WikiTableViewController.wtvc_log, type: .debug)
+                    os_log("Cancelled in completion block", log: WikiTableViewController.wtvc_log, type: .debug)
                     return
                 }
                 if newDocs.count > 0 {
                     strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
                     strongSelf.pendingSearch = false
                     strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
+                } else if let error = error {
+                    strongSelf.showError(error: error.localizedDescription)
                 }
             }
         }
@@ -178,6 +184,25 @@ class WikiTableViewController: UITableViewController {
     
     private func safeIndexPath(indexPath: IndexPath) -> Bool {
         return (0..<wikiDocs.count) ~= indexPath.section && (0..<wikiDocs[indexPath.section].count) ~= indexPath.row
+    }
+    
+    // MARK: - User Alert
+    
+    func showError(error: String) {
+        let title = NSLocalizedString("Error", comment: "Title of error alert")
+        let alert = UIAlertController(title: title, message: error, preferredStyle: UIAlertControllerStyle.alert)
+        let retry = UIAlertAction(title: "Retry", style: .default) {
+            [weak self] (action: UIAlertAction)-> Void in
+            self?.search()
+        }
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel) {
+            [weak self] (action: UIAlertAction)-> Void in
+                self?.searchController.searchBar.text = nil
+        }
+        alert.addAction(retry)
+        alert.addAction(cancel)
+
+        present(alert, animated: true)
     }
     
     // MARK: - Segue to document view

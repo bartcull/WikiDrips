@@ -25,11 +25,11 @@ public class WikiRequest {
         self.offset = (pageIndex * WikiRequest.searchLimit)
     }
     
-    public func fetchWikiDocs(successHandler: @escaping ([WikiDoc]) -> Void) {
+    public func fetchWikiDocs(handlerWithDocsOrError: @escaping ([WikiDoc], Error?) -> Void) {
         guard let urlRequest = urlRequest(searchText: searchText) else {
             return
         }
-
+        var wikiDocs = [WikiDoc]()
         task = session.dataTask(with: urlRequest) {
             (data, response, error) in
             // make sure request wasn't cancelled
@@ -45,11 +45,13 @@ public class WikiRequest {
                     log_type.description = "Debug"
                 }
                 os_log("%@: %@", log: WikiRequest.rq_log, type: log_type.code, log_type.description, error as CVarArg)
+                handlerWithDocsOrError(wikiDocs, error)
                 return
             }
             // make sure we got data
             guard let data = data else {
                 os_log("Error: did not receive data", log: WikiRequest.rq_log, type: .error)
+                handlerWithDocsOrError(wikiDocs, error) // This error would be nil here. TODO: add custom error.
                 return
             }
             // parse the result as JSON
@@ -67,7 +69,7 @@ public class WikiRequest {
 
                 let isoDateFormatter = ISO8601DateFormatter()
 
-                let wikiDocs: [WikiDoc] = results.flatMap {
+                wikiDocs = results.flatMap {
                     guard let item = $0 as? [String: Any],
                         let title = item["title"] as? String,
                         let isoDate = item["timestamp"] as? String,
@@ -77,7 +79,7 @@ public class WikiRequest {
                     return WikiDoc(title: title, date: date, image: nil)
                 }
                 
-                successHandler(wikiDocs)
+                handlerWithDocsOrError(wikiDocs, error)
             }
         }
     }
