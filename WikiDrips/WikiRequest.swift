@@ -9,6 +9,25 @@
 import Foundation
 import os.log
 
+enum WikiError: Error {
+    case networkError
+    case dataNotReturned
+    case jsonConversionError
+}
+
+extension WikiError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .dataNotReturned:
+            return NSLocalizedString("Did not receive data.", comment: "Error message when API response returns no data.")
+        case .jsonConversionError:
+            return NSLocalizedString("Error trying to convert data to JSON.", comment: "Error message when API response can't be converted to JSON.")
+        default:
+            return NSLocalizedString("An unknown error occurred.", comment: "Default error message.")
+        }
+    }
+}
+
 public class WikiRequest {
 
     static let searchLimit = 100
@@ -25,11 +44,10 @@ public class WikiRequest {
         self.offset = (pageIndex * WikiRequest.searchLimit)
     }
     
-    public func fetchWikiDocs(handlerWithDocsOrError: @escaping ([WikiDoc], Error?) -> Void) {
-        guard let urlRequest = urlRequest(searchText: searchText) else {
-            return
-        }
+    public func fetchWikiDocs(handlerForDocsOrError: @escaping ([WikiDoc], Error?) -> Void) {
+        guard let urlRequest = urlRequest(searchText: searchText) else { return }
         var wikiDocs = [WikiDoc]()
+        var request_error: Error?
         task = session.dataTask(with: urlRequest) {
             (data, response, error) in
             // make sure request wasn't cancelled
@@ -37,6 +55,7 @@ public class WikiRequest {
             
             // check for any errors
             guard error == nil else {
+                request_error = error
                 guard let error = error as NSError? else { return }
                 var log_type = (code: OSLogType.error, description: "Error")
                 if error.code == NSURLErrorCancelled {
@@ -44,20 +63,25 @@ public class WikiRequest {
                     log_type.code = .debug
                     log_type.description = "Debug"
                 }
-                os_log("%@: %@", log: WikiRequest.rq_log, type: log_type.code, log_type.description, error as CVarArg)
-                handlerWithDocsOrError(wikiDocs, error)
+                os_log("%@: %@", log: WikiRequest.rq_log, type: log_type.code, log_type.description, error)
+                handlerForDocsOrError(wikiDocs, request_error)
                 return
             }
             // make sure we got data
             guard let data = data else {
-                os_log("Error: did not receive data", log: WikiRequest.rq_log, type: .error)
-                handlerWithDocsOrError(wikiDocs, error) // This error would be nil here. TODO: add custom error.
+                request_error = WikiError.dataNotReturned
+                guard let error = request_error as NSError? else { return }
+                os_log("Error: %@", log: WikiRequest.rq_log, type: .error, error)
+                handlerForDocsOrError(wikiDocs, request_error)
                 return
             }
             // parse the result as JSON
             do {
                 guard let response = try? JSONSerialization.jsonObject(with: data, options: []) else {
-                    os_log("Error trying to convert data to JSON", log: WikiRequest.rq_log, type: .error)
+                    request_error = WikiError.jsonConversionError
+                    guard let error = request_error as NSError? else { return }
+                    os_log("Error: %@", log: WikiRequest.rq_log, type: .error, error)
+                    handlerForDocsOrError(wikiDocs, request_error)
                     return
                 }
                 
@@ -78,10 +102,10 @@ public class WikiRequest {
                     }
                     return WikiDoc(title: title, date: date, image: nil)
                 }
-                
-                handlerWithDocsOrError(wikiDocs, error)
+                handlerForDocsOrError(wikiDocs, request_error)
             }
         }
+//        return (wikiDocs, request_error)
     }
     
     public func cancel() {

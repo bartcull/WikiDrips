@@ -9,10 +9,6 @@
 import UIKit
 import os.log
 
-enum WikiErrors: Error {
-    case networkError(String)
-}
-
 class WikiTableViewController: UITableViewController {
 
     static let wtvc_log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiTableViewController")
