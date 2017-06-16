@@ -44,45 +44,37 @@ public class WikiRequest {
         self.offset = (pageIndex * WikiRequest.searchLimit)
     }
     
-    public func fetchWikiDocs(handlerForDocsOrError: @escaping ([WikiDoc], Error?) -> Void) {
+    public func fetchWikiDocs(handler: @escaping (() throws -> [WikiDoc]) -> Void) {
         guard let urlRequest = urlRequest(searchText: searchText) else { return }
-        var wikiDocs = [WikiDoc]()
-        var request_error: Error?
         task = session.dataTask(with: urlRequest) {
             (data, response, error) in
-            // make sure request wasn't cancelled
-            guard self.isCancelled == false else { return }
-            
-            // check for any errors
-            guard error == nil else {
-                request_error = error
-                guard let error = error as NSError? else { return }
-                var log_type = (code: OSLogType.error, description: "Error")
-                if error.code == NSURLErrorCancelled {
-                    self.isCancelled = true
-                    log_type.code = .debug
-                    log_type.description = "Debug"
-                }
-                os_log("%@: %@", log: WikiRequest.rq_log, type: log_type.code, log_type.description, error)
-                handlerForDocsOrError(wikiDocs, request_error)
-                return
-            }
-            // make sure we got data
-            guard let data = data else {
-                request_error = WikiError.dataNotReturned
-                guard let error = request_error as NSError? else { return }
-                os_log("Error: %@", log: WikiRequest.rq_log, type: .error, error)
-                handlerForDocsOrError(wikiDocs, request_error)
-                return
-            }
-            // parse the result as JSON
             do {
+                // make sure request wasn't cancelled
+                guard self.isCancelled == false else { return }
+                
+                // check for any errors
+                guard error == nil else {
+                    guard let error = error as NSError? else { return }
+                    var log_type = (code: OSLogType.error, description: "Error")
+                    if error.code == NSURLErrorCancelled {
+                        self.isCancelled = true
+                        log_type.code = .debug
+                        log_type.description = "Debug"
+                    }
+                    os_log("%@: %@", log: WikiRequest.rq_log, type: log_type.code, log_type.description, error)
+                    throw error
+                }
+                // make sure we got data
+                guard let data = data else {
+                    let data_error = WikiError.dataNotReturned as NSError
+                    os_log("Error: %@", log: WikiRequest.rq_log, type: .error, data_error)
+                    throw data_error
+                }
+                // parse the result as JSON
                 guard let response = try? JSONSerialization.jsonObject(with: data, options: []) else {
-                    request_error = WikiError.jsonConversionError
-                    guard let error = request_error as NSError? else { return }
-                    os_log("Error: %@", log: WikiRequest.rq_log, type: .error, error)
-                    handlerForDocsOrError(wikiDocs, request_error)
-                    return
+                    let conversion_error = WikiError.jsonConversionError as NSError
+                    os_log("Error: %@", log: WikiRequest.rq_log, type: .error, conversion_error)
+                    throw conversion_error
                 }
                 
                 guard let dictionary = response as? [String: Any],
@@ -93,7 +85,7 @@ public class WikiRequest {
 
                 let isoDateFormatter = ISO8601DateFormatter()
 
-                wikiDocs = results.flatMap {
+                let wikiDocs: [WikiDoc] = results.flatMap {
                     guard let item = $0 as? [String: Any],
                         let title = item["title"] as? String,
                         let isoDate = item["timestamp"] as? String,
@@ -102,10 +94,11 @@ public class WikiRequest {
                     }
                     return WikiDoc(title: title, date: date, image: nil)
                 }
-                handlerForDocsOrError(wikiDocs, request_error)
+                handler({ return wikiDocs })
+            } catch let thrown_error {
+                handler({ throw thrown_error })
             }
         }
-//        return (wikiDocs, request_error)
     }
     
     public func cancel() {

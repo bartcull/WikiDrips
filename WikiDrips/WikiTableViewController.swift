@@ -86,9 +86,10 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) {
-        wikiRequest.fetchWikiDocs { [weak self] newDocs, error in
+        wikiRequest.fetchWikiDocs { [weak self] (inner: () throws -> [WikiDoc]) -> Void in
             guard let strongSelf = self else { return }
-            DispatchQueue.main.async(){
+            do {
+                let newDocs = try inner()
                 if wikiRequest.isCancelled {
                     os_log("Cancelled in completion block", log: WikiTableViewController.wtvc_log, type: .debug)
                     return
@@ -97,9 +98,9 @@ class WikiTableViewController: UITableViewController {
                     strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
                     strongSelf.pendingSearch = false
                     strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
-                } else if let error = error {
-                    strongSelf.showError(error: error.localizedDescription)
                 }
+            } catch let error {
+                strongSelf.showError(error: error.localizedDescription)
             }
         }
     }
