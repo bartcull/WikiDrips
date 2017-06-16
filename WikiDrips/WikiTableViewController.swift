@@ -86,21 +86,23 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) {
-        wikiRequest.fetchWikiDocs { [weak self] (inner: () throws -> [WikiDoc]) -> Void in
+        wikiRequest.fetchWikiDocs { [weak self] (inner: @escaping () throws -> [WikiDoc]) -> Void in
             guard let strongSelf = self else { return }
-            do {
-                let newDocs = try inner()
+            DispatchQueue.main.async(){
                 if wikiRequest.isCancelled {
                     os_log("Cancelled in completion block", log: WikiTableViewController.wtvc_log, type: .debug)
                     return
                 }
-                if newDocs.count > 0 {
-                    strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
-                    strongSelf.pendingSearch = false
-                    strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
+                do {
+                    let newDocs = try inner()
+                    if newDocs.count > 0 {
+                        strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
+                        strongSelf.pendingSearch = false
+                        strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
+                    }
+                } catch let error {
+                    strongSelf.showError(error: error.localizedDescription)
                 }
-            } catch let error {
-                strongSelf.showError(error: error.localizedDescription)
             }
         }
     }
@@ -195,6 +197,7 @@ class WikiTableViewController: UITableViewController {
         let cancel = UIAlertAction(title: "Cancel", style: .cancel) {
             [weak self] (action: UIAlertAction)-> Void in
                 self?.searchController.searchBar.text = nil
+                self?.searchIndicatorView.stopAnimating()
         }
         alert.addAction(retry)
         alert.addAction(cancel)

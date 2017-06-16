@@ -44,7 +44,7 @@ public class WikiRequest {
         self.offset = (pageIndex * WikiRequest.searchLimit)
     }
     
-    public func fetchWikiDocs(handler: @escaping (() throws -> [WikiDoc]) -> Void) {
+    public func fetchWikiDocs(handler: @escaping ( @escaping () throws -> [WikiDoc]) -> Void) {
         guard let urlRequest = urlRequest(searchText: searchText) else { return }
         task = session.dataTask(with: urlRequest) {
             (data, response, error) in
