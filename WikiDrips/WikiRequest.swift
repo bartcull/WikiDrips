@@ -10,7 +10,6 @@ import Foundation
 import os.log
 
 enum WikiError: Error {
-    case networkError
     case dataNotReturned
     case jsonConversionError
 }
@@ -22,8 +21,6 @@ extension WikiError: LocalizedError {
             return NSLocalizedString("Did not receive data.", comment: "Error message when API response returns no data.")
         case .jsonConversionError:
             return NSLocalizedString("Error trying to convert data to JSON.", comment: "Error message when API response can't be converted to JSON.")
-        default:
-            return NSLocalizedString("An unknown error occurred.", comment: "Default error message.")
         }
     }
 }
@@ -31,7 +28,7 @@ extension WikiError: LocalizedError {
 public class WikiRequest {
 
     static let searchLimit = 100
-    static let rq_log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiRequest")
+    static let log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiRequest")
 
     let session = URLSession.shared
     let searchText: String
@@ -44,60 +41,58 @@ public class WikiRequest {
         self.offset = (pageIndex * WikiRequest.searchLimit)
     }
     
-    public func fetchWikiDocs(handler: @escaping ( @escaping () throws -> [WikiDoc]) -> Void) {
+    public func fetchWikiDocs(handler: @escaping ([WikiDoc]?, Error?) -> Void) {
         guard let urlRequest = urlRequest(searchText: searchText) else { return }
         task = session.dataTask(with: urlRequest) {
             (data, response, error) in
-            do {
-                // make sure request wasn't cancelled
-                guard self.isCancelled == false else { return }
-                
-                // check for any errors
-                guard error == nil else {
-                    guard let error = error as NSError? else { return }
-                    var log_type = (code: OSLogType.error, description: "Error")
-                    if error.code == NSURLErrorCancelled {
-                        self.isCancelled = true
-                        log_type.code = .debug
-                        log_type.description = "Debug"
-                    }
-                    os_log("%@: %@", log: WikiRequest.rq_log, type: log_type.code, log_type.description, error)
-                    throw error
-                }
-                // make sure we got data
-                guard let data = data else {
-                    let data_error = WikiError.dataNotReturned as NSError
-                    os_log("Error: %@", log: WikiRequest.rq_log, type: .error, data_error)
-                    throw data_error
-                }
-                // parse the result as JSON
-                guard let response = try? JSONSerialization.jsonObject(with: data, options: []) else {
-                    let conversion_error = WikiError.jsonConversionError as NSError
-                    os_log("Error: %@", log: WikiRequest.rq_log, type: .error, conversion_error)
-                    throw conversion_error
-                }
-                
-                guard let dictionary = response as? [String: Any],
-                    let query = dictionary["query"] as? [String: Any],
-                    let results = query["search"] as? [Any] else {
-                    return
-                }
 
-                let isoDateFormatter = ISO8601DateFormatter()
+            // make sure request wasn't cancelled
+            guard self.isCancelled == false else { return }
 
-                let wikiDocs: [WikiDoc] = results.flatMap {
-                    guard let item = $0 as? [String: Any],
-                        let title = item["title"] as? String,
-                        let isoDate = item["timestamp"] as? String,
-                        let date = isoDateFormatter.date(from: isoDate) else {
-                        return nil
-                    }
-                    return WikiDoc(title: title, date: date, image: nil)
+            // check for any errors
+            guard error == nil else {
+                guard let error = error as NSError? else { return }
+                var logType = (code: OSLogType.error, description: "Error")
+                if error.code == NSURLErrorCancelled {
+                    self.isCancelled = true
+                    logType.code = .debug
+                    logType.description = "Debug"
                 }
-                handler({ return wikiDocs })
-            } catch let thrown_error {
-                handler({ throw thrown_error })
+                os_log("%@: %@", log: WikiRequest.log, type: logType.code, logType.description, error)
+                return handler(nil, error)
             }
+            // make sure we got data
+            guard let data = data else {
+                let dataError = WikiError.dataNotReturned as NSError
+                os_log("Error: %@", log: WikiRequest.log, type: .error, dataError)
+                return handler(nil, dataError)
+            }
+            // parse the result as JSON
+            guard let response = try? JSONSerialization.jsonObject(with: data, options: []) else {
+                let conversionError = WikiError.jsonConversionError as NSError
+                os_log("Error: %@", log: WikiRequest.log, type: .error, conversionError)
+                return handler(nil, conversionError)
+            }
+
+            guard let dictionary = response as? [String: Any],
+                let query = dictionary["query"] as? [String: Any],
+                let results = query["search"] as? [Any] else {
+                    return // TODO: pass error to handler
+            }
+
+            let isoDateFormatter = ISO8601DateFormatter()
+
+            let wikiDocs: [WikiDoc] = results.flatMap {
+                guard let item = $0 as? [String: Any],
+                    let title = item["title"] as? String,
+                    let isoDate = item["timestamp"] as? String,
+                    let date = isoDateFormatter.date(from: isoDate) else {
+                        return nil
+                }
+                return WikiDoc(title: title, date: date, image: nil)
+            }
+
+            handler(wikiDocs, nil)
         }
     }
     
@@ -122,7 +117,7 @@ public class WikiRequest {
         ]
 
         guard let url = endpoint.url else {
-            os_log("Error: cannot create URL for searchText %@.", log: WikiRequest.rq_log, type: .error, searchText)
+            os_log("Error: cannot create URL for searchText %@.", log: WikiRequest.log, type: .error, searchText)
             return nil
         }
 

@@ -12,7 +12,7 @@ import os.log
 
 class WikiDocViewController: UIViewController, WKUIDelegate {
 
-    static let wdvc_log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiDocViewController")
+    static let log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiDocViewController")
     
     fileprivate var activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
     private var webView: WKWebView?
@@ -52,7 +52,7 @@ class WikiDocViewController: UIViewController, WKUIDelegate {
         endpoint.path = "/wiki/\(title)"
 
         guard let url = endpoint.url else {
-            os_log("Error: cannot create document URL for title %@.", log: WikiDocViewController.wdvc_log, type: .error, title)
+            os_log("Error: cannot create document URL for title %@.", log: WikiDocViewController.log, type: .error, title)
             return nil
         }
         
@@ -72,7 +72,7 @@ extension WikiDocViewController: WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        os_log("Error: %@.", log: WikiDocViewController.wdvc_log, type: .error, error as CVarArg)
+        os_log("Error: %@.", log: WikiDocViewController.log, type: .error, error as CVarArg)
         activityIndicator.stopAnimating()
     }
 }
