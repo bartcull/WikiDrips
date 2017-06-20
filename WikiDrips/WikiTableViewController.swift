@@ -268,7 +268,8 @@ class WikiTableViewController: UITableViewController {
 // MARK: - UISearchResultsUpdating
 extension WikiTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for: UISearchController) {
-        guard let text = searchController.searchBar.text else { return }
+        guard let text = searchController.searchBar.text, text != searchText
+            else { return }
         pageIndex = 0
         wikiDocs = [[WikiDoc]]()
         clearPendingImageTasks()
