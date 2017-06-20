@@ -12,6 +12,7 @@ import os.log
 enum WikiError: Error {
     case dataNotReturned
     case jsonConversionError
+    case malformedData
 }
 
 extension WikiError: LocalizedError {
@@ -21,6 +22,8 @@ extension WikiError: LocalizedError {
             return NSLocalizedString("Did not receive data.", comment: "Error message when API response returns no data.")
         case .jsonConversionError:
             return NSLocalizedString("Error trying to convert data to JSON.", comment: "Error message when API response can't be converted to JSON.")
+        case .malformedData:
+            return NSLocalizedString("Response is malformed.", comment: "Error message when API response is missing elements.")
         }
     }
 }
@@ -77,7 +80,9 @@ public class WikiRequest {
             guard let dictionary = response as? [String: Any],
                 let query = dictionary["query"] as? [String: Any],
                 let results = query["search"] as? [Any] else {
-                    return // TODO: pass error to handler
+                    let malformedDataError = WikiError.malformedData as NSError
+                    os_log("Error: %@", log: WikiRequest.log, type: .error, malformedDataError)
+                    return handler(nil, malformedDataError)
             }
 
             let isoDateFormatter = ISO8601DateFormatter()
