@@ -7,14 +7,16 @@
 //
 
 import UIKit
+import os.log
 
 class WikiTableViewController: UITableViewController {
-    
-    // MARK: - View Controller Lifecycle
-    
+
+    static let log = OSLog(subsystem: "com.salesforce.WikiDrips", category: "WikiTableViewController")
     let dateFormatter = DateFormatter()
     let searchController = UISearchController(searchResultsController: nil)
     fileprivate var imageCache = ImageCache()
+    
+    // MARK: - View Controller Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,18 +86,23 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func setCompletionBlock(for wikiRequest: WikiRequest) {
-        wikiRequest.fetchWikiDocs { [weak self] newDocs in
+        wikiRequest.fetchWikiDocs { [weak self] (docs, error) -> Void in
             guard let strongSelf = self else { return }
             DispatchQueue.main.async(){
                 if wikiRequest.isCancelled {
-                    print("Cancelled in search completion block")
+                    os_log("Cancelled in completion block", log: WikiTableViewController.log, type: .debug)
                     return
                 }
-                if newDocs.count > 0 {
-                    strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
-                    strongSelf.pendingSearch = false
-                    strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
+                guard error == nil else {
+                    strongSelf.showError(error: error!.localizedDescription)
+                    return
                 }
+                guard let newDocs = docs else { return }
+                guard newDocs.count > 0 else { return }
+
+                strongSelf.clearPendingImageTasks() // Remove stale tasks created by consecutive searches
+                strongSelf.pendingSearch = false
+                strongSelf.populateRows(atOffset: wikiRequest.offset, with: newDocs)
             }
         }
     }
@@ -130,13 +137,19 @@ class WikiTableViewController: UITableViewController {
     }
     
     fileprivate func checkImage(forItemAtIndex indexPath: IndexPath) {
-        guard safeIndexPath(indexPath: indexPath) else { print("unsafe indexpath"); return }
+        guard safeIndexPath(indexPath: indexPath) else {
+            os_log("Error: unsafe indexpath", log: WikiTableViewController.log, type: .error)
+            return
+        }
         let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
         checkImage(forItemAtIndex: indexPath, withWikiDoc: wikiDoc, in: nil)
     }
     
     fileprivate func checkImage(forItemAtIndex indexPath: IndexPath, withWikiDoc wikiDoc: WikiDoc, in imageView: UIImageView?) {
-        guard let initials = wikiDoc.imageInitials else { print("missing initials"); return }
+        guard let initials = wikiDoc.imageInitials else {
+            os_log("Error: missing initials", log: WikiTableViewController.log, type: .error)
+            return
+        }
         if let cachedImage = imageCache.image(forKey: initials) {
             imageView?.image = cachedImage // Prefetch rows are ignored because they have no view yet
         } else {
@@ -153,11 +166,11 @@ class WikiTableViewController: UITableViewController {
             OperationQueue.main.addOperation { [weak self] in
                 self?.pendingImageTasks[indexPath] = nil
                 if generator.isCancelled {
-                    print("Cancelled in completion block")
+                    os_log("Cancelled in completion block", log: WikiTableViewController.log, type: .debug)
                     return
                 }
                 guard let image = generator.image else {
-                    print("Error creating image") // I'll change this to error logging later
+                    os_log("Error creating image", log: WikiTableViewController.log, type: .error)
                     return
                 }
                 self?.imageCache.setImage(image, forKey: initials)
@@ -172,6 +185,28 @@ class WikiTableViewController: UITableViewController {
         return (0..<wikiDocs.count) ~= indexPath.section && (0..<wikiDocs[indexPath.section].count) ~= indexPath.row
     }
     
+    // MARK: - User Alert
+    
+    func showError(error: String) {
+        let title = NSLocalizedString("Error", comment: "Title of error alert")
+        let retryActionTitle = NSLocalizedString("Retry", comment: "Retry button title")
+        let cancelActionTitle = NSLocalizedString("Cancel", comment: "Cancel button title")
+        let alert = UIAlertController(title: title, message: error, preferredStyle: UIAlertControllerStyle.alert)
+        let retry = UIAlertAction(title: retryActionTitle, style: .default) {
+            [weak self] (action: UIAlertAction)-> Void in
+            self?.search()
+        }
+        let cancel = UIAlertAction(title: cancelActionTitle, style: .cancel) {
+            [weak self] (action: UIAlertAction)-> Void in
+                self?.searchController.searchBar.text = nil
+                self?.searchIndicatorView.stopAnimating()
+        }
+        alert.addAction(retry)
+        alert.addAction(cancel)
+
+        present(alert, animated: true)
+    }
+    
     // MARK: - Segue to document view
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -181,7 +216,7 @@ class WikiTableViewController: UITableViewController {
                     guard let sender = sender as? WikiTableViewCell else { break }
                     guard let indexPath = tableView.indexPath(for: sender),
                         safeIndexPath(indexPath: indexPath)
-                        else { print("Error with indexpath"); break }
+                        else { os_log("Error: unsafe indexpath", log: WikiTableViewController.log, type: .error); break }
                     
                     let wikiDoc = wikiDocs[indexPath.section][indexPath.row]
                     
@@ -205,7 +240,7 @@ class WikiTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let wikiCell = tableView.dequeueReusableCell(withIdentifier: "WikiDoc", for: indexPath) as? WikiTableViewCell else {
-            // Log or ignore casting failure
+            // Ignore casting failure
             return UITableViewCell()
         }
         
@@ -233,7 +268,8 @@ class WikiTableViewController: UITableViewController {
 // MARK: - UISearchResultsUpdating
 extension WikiTableViewController: UISearchResultsUpdating {
     func updateSearchResults(for: UISearchController) {
-        guard let text = searchController.searchBar.text else { return }
+        guard let text = searchController.searchBar.text, text != searchText
+            else { return }
         pageIndex = 0
         wikiDocs = [[WikiDoc]]()
         clearPendingImageTasks()
